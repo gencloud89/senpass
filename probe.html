@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="zh_CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nyanpass Dev - 节点状态</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #1a1a2e;
+        color: #e0e0e0;
+        min-height: 100vh;
+      }
+      nav.top {
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        background: #16213e;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      nav.top a,
+      nav.top button {
+        color: #e0e0e0;
+        text-decoration: none;
+        padding: 8px 14px;
+        border-radius: 20px;
+        border: 1px solid #333;
+        background: transparent;
+        cursor: pointer;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.2s;
+      }
+      nav.top a:hover,
+      nav.top button:hover {
+        background: #0f3460;
+        border-color: #1677ff;
+      }
+      nav.top .spacer {
+        flex: 1;
+      }
+      .nav-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 4px;
+      }
+      .nav-dot.on {
+        background: #52c41a;
+        box-shadow: 0 0 6px #52c41a;
+      }
+      .nav-dot.off {
+        background: #ff4d4f;
+      }
+      .group-card {
+        margin: 12px 12px;
+        background: #16213e;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .group-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .group-header:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .group-header .gtitle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .group-header .gtitle h2 {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .group-header .gtitle .badge {
+        background: #1677ff;
+        color: #fff;
+        border-radius: 10px;
+        padding: 2px 8px;
+        font-size: 11px;
+      }
+      .group-header .gtitle .arrow {
+        font-size: 12px;
+        transition: transform 0.2s;
+        color: #888;
+      }
+      .group-header .gtitle .arrow.open {
+        transform: rotate(90deg);
+      }
+      .group-header .speed {
+        display: flex;
+        gap: 16px;
+        font-size: 12px;
+        color: #aaa;
+      }
+      .group-header .speed .up {
+        color: #52c41a;
+      }
+      .group-header .speed .down {
+        color: #1677ff;
+      }
+      .group-body {
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+      }
+      .group-body.collapsed {
+        max-height: 0;
+      }
+      .group-body.expanded {
+        max-height: 3000px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+      }
+      th,
+      td {
+        padding: 8px 10px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      th {
+        background: rgba(0, 0, 0, 0.3);
+        font-weight: 600;
+        color: #999;
+      }
+      tr:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+      }
+      .chip-green {
+        background: rgba(82, 196, 26, 0.15);
+        color: #52c41a;
+      }
+      .chip-red {
+        background: rgba(255, 77, 79, 0.15);
+        color: #ff4d4f;
+      }
+      .chip-action {
+        cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: transparent;
+        color: #aaa;
+        transition: 0.2s;
+        padding: 4px 8px;
+      }
+      .chip-action:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+      .progress-wrap {
+        position: relative;
+        height: 16px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+        overflow: hidden;
+        min-width: 60px;
+      }
+      .progress-bar {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.8s ease-out;
+      }
+      .progress-red {
+        background: linear-gradient(90deg, #e74c3c, #ff6b6b);
+      }
+      .progress-blue {
+        background: linear-gradient(90deg, #2980b9, #3498db);
+      }
+      .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 10px;
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+        font-weight: 600;
+      }
+      /* SPARKLINE */
+      .spark {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 4px;
+      }
+      .fi {
+        font-size: 16px;
+        border-radius: 2px;
+        margin-right: 4px;
+      }
+      #loading {
+        text-align: center;
+        padding: 60px;
+        color: #999;
+      }
+      .spin {
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top: 3px solid #1677ff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .empty-state {
+        text-align: center;
+        padding: 60px;
+        color: #666;
+      }
+      small {
+        color: #888;
+      }
+      @media (max-width: 768px) {
+        nav.top {
+          font-size: 12px;
+          padding: 8px;
+        }
+        nav.top a,
+        nav.top button {
+          padding: 6px 10px;
+          font-size: 11px;
+        }
+        .group-card {
+          margin: 8px 4px;
+        }
+        th,
+        td {
+          padding: 6px 8px;
+          font-size: 11px;
+        }
+        .group-header .speed {
+          display: none;
+        }
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.1.0/css/flag-icons.min.css"
+    />
+  </head>
+  <body>
+    <nav class="top">
+      <a href="/">🏠 主页</a>
+      <div class="spacer"></div>
+      <span id="wsStatus"
+        ><span class="nav-dot off"></span>Đang kết nối...</span
+      >
+      <span
+        style="font-size: 12px; color: #888; margin-left: 8px"
+        id="updateTime"
+      ></span>
+      <button onclick="toggleMode()">🌓</button>
+      <button id="btnView" onclick="toggleView()" style="display: none">
+        👤 切换视角
+      </button>
+    </nav>
+    <div id="loading">
+      <div class="spin"></div>
+      <p>Đang kết nối WebSocket...</p>
+    </div>
+    <div id="content"></div>
+
+    <script>
+      var API = "/api/v1",
+        token = "",
+        isAdmin = false,
+        isUserView = false,
+        ws = null,
+        reconnectTimer = null,
+        reconnectCount = 0;
+      var history = {},
+        geoCache = {}; // Lưu lịch sử bandwidth cho sparkline + cache cờ quốc gia
+
+      token = localStorage.getItem("Authorization") || "";
+      if (!token) {
+        token = "dev-token";
+        localStorage.setItem("Authorization", token);
+      }
+      fetch(API + "/user/info", { headers: { Authorization: token } })
+        .then(function (r) {
+          return r.json();
+        })
+        .then(function (d) {
+          if (d.code === 0 && d.data.admin) {
+            isAdmin = true;
+            document.getElementById("btnView").style.display = "";
+          }
+        })
+        .catch(function () {})
+        .finally(function () {
+          connectWS();
+        });
+
+      function setWSStatus(ok, msg) {
+        document.getElementById("wsStatus").innerHTML =
+          '<span class="nav-dot ' + (ok ? "on" : "off") + '"></span>' + msg;
+      }
+      function connectWS() {
+        if (ws) {
+          ws.close();
+        }
+        var proto = location.protocol === "https:" ? "wss" : "ws";
+        var url =
+          proto +
+          "://" +
+          location.host +
+          API +
+          "/system/node/status_ws?token=" +
+          token;
+        try {
+          ws = new WebSocket(url);
+          ws.onopen = function () {
+            reconnectCount = 0;
+            setWSStatus(true, "Real-time");
+            document.getElementById("loading").style.display = "none";
+          };
+          ws.onmessage = function (e) {
+            try {
+              var data = JSON.parse(e.data);
+              lastData = data || [];
+              updateHistory(data);
+              renderAll(data);
+              document.getElementById("updateTime").textContent =
+                new Date().toLocaleTimeString("vi-VN");
+            } catch (err) {}
+          };
+          ws.onclose = function () {
+            setWSStatus(false, "Ngat ket noi...");
+            if (reconnectCount < 10) {
+              reconnectTimer = setTimeout(connectWS, 2000);
+              reconnectCount++;
+            } else {
+              setWSStatus(false, "Mat ket noi - F5 thu lai");
+            }
+          };
+          ws.onerror = function () {
+            ws.close();
+          };
+        } catch (e) {
+          setWSStatus(false, "Loi ket noi");
+          setTimeout(connectWS, 3000);
+        }
+      }
+
+      // Lưu lịch sử bandwidth tối đa 30 điểm
+      function updateHistory(groups) {
+        groups.forEach(function (g) {
+          g.servers.forEach(function (s) {
+            if (!history[s.handle])
+              history[s.handle] = { netIn: [], netOut: [], cpu: [], mem: [] };
+            var st = s.system_state || {};
+            var h = history[s.handle];
+            h.netIn.push(st.net_in_speed || 0);
+            h.netOut.push(st.net_out_speed || 0);
+            h.cpu.push(st.cpu || 0);
+            h.mem.push(
+              st.mem_used && s.system_info && s.system_info.mem_total
+                ? Math.round((st.mem_used / s.system_info.mem_total) * 100)
+                : 0,
+            );
+            if (h.netIn.length > 30) {
+              h.netIn.shift();
+              h.netOut.shift();
+              h.cpu.shift();
+              h.mem.shift();
+            }
+          });
+        });
+      }
+
+      // Vẽ sparkline SVG nhỏ (60x20)
+      function spark(data, color, maxVal) {
+        if (!data || data.length < 2)
+          return '<span style="color:#888">-</span>';
+        var w = 60,
+          h = 20,
+          pad = 2;
+        maxVal = maxVal || Math.max.apply(null, data, 1);
+        if (maxVal === 0) maxVal = 1;
+        var points = data.map(function (v, i) {
+          return {
+            x: pad + (i * (w - pad * 2)) / (data.length - 1),
+            y: h - pad - (v / maxVal) * (h - pad * 2),
+          };
+        });
+        var path = "M" + points[0].x.toFixed(1) + "," + points[0].y.toFixed(1);
+        for (var i = 1; i < points.length; i++) {
+          path += " L" + points[i].x.toFixed(1) + "," + points[i].y.toFixed(1);
+        }
+        return (
+          '<svg class="spark" width="' +
+          w +
+          '" height="' +
+          h +
+          '" style="vertical-align:middle"><path d="' +
+          path +
+          '" stroke="' +
+          color +
+          '" fill="none" stroke-width="1.5"/></svg>'
+        );
+      }
+
+      function toggleMode() {
+        var b = document.body;
+        b.style.background =
+          b.style.background === "rgb(250,250,250)" ? "#1a1a2e" : "#fafafa";
+        b.style.color = b.style.color === "#333" ? "#e0e0e0" : "#333";
+      }
+      function toggleView() {
+        isUserView = !isUserView;
+        document.getElementById("btnView").textContent = isUserView
+          ? "👤 管理员视角"
+          : "👤 切换视角";
+        renderAll(lastData);
+      }
+      var lastData = [],
+        groupState = {};
+      // EMA smoothing cho CPU và RAM — tránh giật cục khi giá trị thay đổi nhanh
+      var smoothData = {};
+      function smoothVal(handle, key, raw, alpha) {
+        alpha = alpha || 0.3;
+        smoothData[handle] = smoothData[handle] || {};
+        var prev = smoothData[handle][key];
+        if (prev === undefined) {
+          smoothData[handle][key] = raw;
+          return raw;
+        }
+        var v = prev * alpha + raw * (1 - alpha);
+        smoothData[handle][key] = v;
+        return v;
+      }
+      function smoothCPU(handle, raw) {
+        return smoothVal(handle, "cpu", raw, 0.4);
+      }
+      function smoothMem(handle, raw) {
+        return smoothVal(handle, "mem", raw, 0.4);
+      }
+      function toggleGroup(gid) {
+        groupState[gid] = !groupState[gid];
+        var body = document.getElementById("group-body-" + gid),
+          arrow = document.getElementById("arrow-" + gid);
+        if (body) {
+          body.classList.toggle("collapsed", !groupState[gid]);
+          body.classList.toggle("expanded", groupState[gid]);
+        }
+        if (arrow) {
+          arrow.classList.toggle("open", groupState[gid]);
+        }
+      }
+
+      function renderAll(groups) {
+        var html = "",
+          hasAny = false;
+        groups.forEach(function (g) {
+          // Ẩn group có hide_status >= 2 khỏi probe (giống web mẫu)
+          if (g.hide_status >= 2) return;
+          if (!g.servers || g.servers.length === 0) return;
+          hasAny = true;
+          var up = 0,
+            down = 0,
+            online = 0;
+          g.servers.forEach(function (s) {
+            if (s.online && s.system_state) {
+              up += s.system_state.net_out_speed || 0;
+              down += s.system_state.net_in_speed || 0;
+              online++;
+            }
+          });
+          if (groupState[g.gid] === undefined) groupState[g.gid] = true;
+          var ex = groupState[g.gid];
+          var tl = {
+            DeviceGroupType_Inbound: "入口",
+            DeviceGroupType_OutboundBySite: "出口",
+            DeviceGroupType_OutboundByUser: "单端出口",
+            DeviceGroupType_AgentOnly: "仅监控",
+            DeviceGroupType_ChainOutbound: "链式出口",
+          };
+          html +=
+            '<div class="group-card"><div class="group-header" onclick="toggleGroup(' +
+            g.gid +
+            ')"><div class="gtitle"><span class="arrow' +
+            (ex ? " open" : "") +
+            '" id="arrow-' +
+            g.gid +
+            '">▶</span><h2>' +
+            esc(g.name) +
+            '</h2><span class="badge">' +
+            (tl[g.gType] || g.gType) +
+            '</span><span class="badge" style="background:#52c41a">' +
+            online +
+            ' online</span></div><div class="speed"><span class="up">↑ ' +
+            fmtSpeed(up) +
+            '</span><span class="down">↓ ' +
+            fmtSpeed(down) +
+            "</span></div></div>";
+          html +=
+            '<div class="group-body' +
+            (ex ? " expanded" : " collapsed") +
+            '" id="group-body-' +
+            g.gid +
+            '"><div class="table-wrap"><table><thead><tr><th>状态</th><th>v4</th><th>IP地址</th><th>速率 (↑/↓)</th><th>带宽图表</th>' +
+            (isAdmin && !isUserView ? "<th>出口IP</th>" : "") +
+            "<th>开机</th><th>CPU</th><th>内存</th><th>连接数</th>" +
+            (isAdmin && !isUserView ? "<th>操作</th>" : "") +
+            "</tr></thead><tbody>";
+          g.servers.forEach(function (s) {
+            var st = s.system_state || {},
+              si = s.system_info || {};
+            st.cpu = st.cpu || 0;
+            st.mem_used = st.mem_used || 0;
+            st.disk_used = st.disk_used || 0;
+            st.tcp_conn_count = st.tcp_conn_count || 0;
+            st.udp_conn_count = st.udp_conn_count || 0;
+            st.load1 = st.load1 || 0;
+            st.process_count = st.process_count || 0;
+            si.mem_total = si.mem_total || 1;
+            si.disk_total = si.disk_total || 1;
+            var mp = Math.min(
+              100,
+              Math.round((st.mem_used / si.mem_total) * 10000) / 100,
+            );
+            var ut = fmtUptime(s.last_seen - (si.boot_time || s.last_seen));
+            var h = history[s.handle] || {
+              netIn: [],
+              netOut: [],
+              cpu: [],
+              mem: [],
+            };
+            html +=
+              '<tr><td><span class="chip ' +
+              (s.online ? "chip-green" : "chip-red") +
+              '">' +
+              (s.online ? "● 在线" : "○ 离线") +
+              "</span></td>";
+            // Cache cờ quốc gia client-side để tránh flickering
+            var geo = s.ip4_geo;
+            if (!geo && geoCache[s.handle]) geo = geoCache[s.handle];
+            if (geo) geoCache[s.handle] = geo;
+            html +=
+              '<td><span class="fi fi-' +
+              (geo || "xx").toLowerCase() +
+              '"></span>' +
+              (geo || "?") +
+              "</td>";
+            html +=
+              '<td><code style="font-size:11px">' +
+              (s.ip4 || "-") +
+              "</code></td>";
+            html +=
+              '<td><span style="color:#52c41a">↑ ' +
+              fmtSpeed(st.net_out_speed) +
+              '</span><br><span style="color:#1677ff">↓ ' +
+              fmtSpeed(st.net_in_speed) +
+              "</span></td>";
+            html +=
+              "<td>" +
+              spark(h.netOut, "#52c41a", null) +
+              "<br>" +
+              spark(h.netIn, "#1677ff", null) +
+              "</td>";
+            if (isAdmin && !isUserView) {
+              var ips = [];
+              if (s.ip4) ips.push(s.ip4);
+              if (s.ip6) ips.push(s.ip6);
+              html +=
+                '<td title="Host: ' +
+                (si.hostname || "?") +
+                '">' +
+                (ips.join("<br>") || "无") +
+                "</td>";
+            }
+            html += "<td>" + ut.num + " " + ut.unit + "</td>";
+            html +=
+              "<td>" +
+              progress(smoothCPU(s.handle, st.cpu), "progress-red") +
+              spark(h.cpu, "#ff6b6b", 100) +
+              "<br><small>Load:" +
+              st.load1.toFixed(1) +
+              " Proc:" +
+              st.process_count +
+              "</small></td>";
+            html +=
+              "<td>" +
+              progress(smoothMem(s.handle, mp), "progress-blue") +
+              spark(h.mem, "#3498db", 100) +
+              "<br><small>" +
+              fmtBytes(st.mem_used) +
+              " / " +
+              fmtBytes(si.mem_total) +
+              "</small></td>";
+            html +=
+              "<td><small>TCP: <b>" +
+              st.tcp_conn_count +
+              "</b></small><br><small>UDP: <b>" +
+              st.udp_conn_count +
+              "</b></small></td>";
+            if (isAdmin && !isUserView)
+              html +=
+                '<td style="white-space:nowrap"><button class="chip chip-action" onclick="setWeight(' +
+                g.gid +
+                ",'" +
+                s.handle +
+                "'," +
+                (s.weight || 1) +
+                ')">⚖️</button> <button class="chip chip-action" onclick="openTerminal(\'' +
+                s.handle +
+                "')\">💻</button> " +
+                (s.online
+                  ? ""
+                  : '<button class="chip chip-action" style="color:#ff4d4f;border-color:#ff4d4f" onclick="kickServer(\'' +
+                    s.handle +
+                    "')\">🗑️</button>") +
+                "</td>";
+            html += "</tr>";
+          });
+          html += "</tbody></table></div></div></div>";
+        });
+        if (!hasAny)
+          html =
+            '<div class="empty-state"><h3>Chưa có server nào kết nối</h3><p>Vào 设备组管理 → bấm 对接 → chạy script trên VPS</p></div>';
+        document.getElementById("content").innerHTML = html;
+      }
+
+      function esc(s) {
+        return (s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+      function fmtBytes(b) {
+        if (b >= 1e12) return (b / 1e12).toFixed(1) + "TB";
+        if (b >= 1e9) return (b / 1e9).toFixed(1) + "GB";
+        if (b >= 1e6) return (b / 1e6).toFixed(1) + "MB";
+        if (b >= 1e3) return (b / 1e3).toFixed(1) + "KB";
+        return b + "B";
+      }
+      function fmtSpeed(b) {
+        if (b >= 1e9) return (b / 1e9).toFixed(1) + "Gbps";
+        if (b >= 1e6) return (b / 1e6).toFixed(1) + "Mbps";
+        if (b >= 1e3) return (b / 1e3).toFixed(1) + "Kbps";
+        return (b * 8).toFixed(0) + "bps";
+      }
+      function fmtUptime(s) {
+        var d = Math.floor(s / 86400),
+          h = Math.floor(s / 3600) % 24;
+        if (d > 0) return { num: d, unit: "天" };
+        if (h > 0) return { num: h, unit: "时" };
+        return { num: Math.floor(s / 60) % 60, unit: "分" };
+      }
+      function fmtTime(ts) {
+        if (!ts) return "-";
+        return new Date(ts * 1000).toLocaleString("vi-VN");
+      }
+      function progress(pct, cls) {
+        return (
+          '<div class="progress-wrap"><div class="progress-bar ' +
+          cls +
+          '" style="width:' +
+          Math.min(pct, 100) +
+          '%"></div><div class="progress-text">' +
+          pct.toFixed(1) +
+          "%</div></div>"
+        );
+      }
+
+      function setWeight(gid, handle, w) {
+        var v = prompt(
+          "Nhập trọng số (0-10, hiện tại: " + w + ", để trống để xóa):",
+        );
+        if (v === null) return;
+        fetch(API + "/system/node/weight/" + gid + "/" + handle, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: token },
+          body: JSON.stringify({ value: v }),
+        }).catch(function () {});
+      }
+      function openTerminal(handle) {
+        fetch(API + "/system/node/terminal/" + handle, {
+          method: "POST",
+          headers: { Authorization: token },
+        })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (d) {
+            if (d.code === 0) window.open("/terminal.html#" + d.data, "_blank");
+          })
+          .catch(function () {});
+      }
+      function kickServer(handle) {
+        if (!confirm("Xác nhận xóa server offline?")) return;
+        fetch(API + "/system/node/kick/" + handle, {
+          method: "POST",
+          headers: { Authorization: token },
+        }).catch(function () {});
+      }
+    </script>
+  </body>
+</html>

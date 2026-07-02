@@ -1,0 +1,43 @@
+# .gitignore — Senpass
+
+# Binaries
+*.exe
+*.exe~
+backend/server
+nodeclient/rel_nodeclient*
+senpass_server
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+
+# Backups
+backups/
+
+# Environment
+.env
+env.sh
+
+# Logs
+*.log
+
+# Temp
+tmp/
+temp/
+
+# Node / Dependencies
+node_modules/
+frontend/dist/
