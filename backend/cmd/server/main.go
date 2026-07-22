@@ -43,8 +43,9 @@ func main() {
 	// User info
 	r.GET("/api/v1/user/info", auth.GetUserInfo)
 
-	// Admin
+	// Admin — cần auth + admin
 	admin := r.Group("/api/v1/admin")
+	admin.Use(middleware.AuthRequired(), middleware.AdminRequired())
 	{
 		dg := handlers.NewDeviceGroupHandler()
 		folder := handlers.NewFolderHandler()

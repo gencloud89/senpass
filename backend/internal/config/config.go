@@ -17,7 +17,7 @@ type Config struct {
 func Load(path string) (*Config, error) {
 	cfg := &Config{
 		DatabasePath: "sqlite3://data.db",
-		Listen:       "127.0.0.1:18888",
+		Listen:       "127.0.0.1:18889",
 	}
 
 	data, err := os.ReadFile(path)

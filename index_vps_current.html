@@ -1,0 +1,2935 @@
+<!doctype html>
+<html lang="zh_CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nyanpass Dev - 管理面板</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f0f2f5;
+        color: #333;
+        display: flex;
+        min-height: 100vh;
+      }
+      /* LOGIN */
+      .login-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #001529 0%, #003a70 100%);
+      }
+      .login-box {
+        background: #fff;
+        border-radius: 8px;
+        padding: 40px;
+        width: 380px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+      .login-box h2 {
+        text-align: center;
+        margin-bottom: 24px;
+        font-size: 20px;
+        color: #001529;
+      }
+      .login-box .f-grp {
+        margin-bottom: 16px;
+      }
+      .login-box .f-grp label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+        color: #555;
+      }
+      .login-box .f-grp input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d9d9d9;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      .login-box .btn {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+      }
+      .login-box .btn-primary {
+        background: #1677ff;
+        color: #fff;
+      }
+      .login-box .btn-primary:hover {
+        background: #4096ff;
+      }
+      .login-err {
+        color: #ff4d4f;
+        font-size: 13px;
+        text-align: center;
+        margin-bottom: 12px;
+        display: none;
+      }
+      /* SIDEBAR */
+      .sidebar {
+        width: 220px;
+        min-width: 220px;
+        background: #001529;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        transition: 0.2s;
+        overflow: hidden;
+      }
+      .sidebar.collapsed {
+        width: 60px;
+        min-width: 60px;
+      }
+      .sidebar-logo {
+        padding: 16px;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 700;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        white-space: nowrap;
+      }
+      .sidebar-logo span {
+        color: #1677ff;
+      }
+      .sidebar-menu {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 0;
+      }
+      .sidebar-toggle {
+        padding: 12px;
+        text-align: center;
+        cursor: pointer;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 13px;
+        user-select: none;
+      }
+      .sidebar-toggle:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .menu-group-header {
+        display: flex;
+        align-items: center;
+        padding: 10px 16px;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 14px;
+        user-select: none;
+        transition: 0.2s;
+        white-space: nowrap;
+      }
+      .menu-group-header:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .menu-group-header .icon {
+        width: 20px;
+        text-align: center;
+        margin-right: 10px;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      .menu-group-header .label {
+        flex: 1;
+      }
+      .menu-group-header .arrow {
+        font-size: 10px;
+        transition: 0.2s;
+      }
+      .menu-group-header .arrow.open {
+        transform: rotate(90deg);
+      }
+      .menu-sub {
+        overflow: hidden;
+        transition: max-height 0.3s;
+      }
+      .menu-sub.collapsed {
+        max-height: 0;
+      }
+      .menu-sub.expanded {
+        max-height: 300px;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 9px 16px 9px 46px;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 13px;
+        transition: 0.2s;
+        white-space: nowrap;
+      }
+      .menu-item:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .menu-item.active {
+        color: #fff;
+        background: #1677ff;
+      }
+      .menu-item .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        margin-right: 8px;
+        flex-shrink: 0;
+        opacity: 0.4;
+      }
+      .menu-item.active .dot {
+        opacity: 1;
+      }
+      /* MAIN */
+      .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .topbar {
+        background: #fff;
+        padding: 0 24px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #e8e8e8;
+        flex-shrink: 0;
+      }
+      .topbar h1 {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .content {
+        flex: 1;
+        padding: 16px 24px;
+        overflow-y: auto;
+      }
+      /* TABLE */
+      .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+      .card-header {
+        padding: 12px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .card-header h2 {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .card-body {
+        padding: 0;
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 13px;
+      }
+      th {
+        background: #fafafa;
+        font-weight: 600;
+        color: #555;
+        white-space: nowrap;
+      }
+      tr:hover {
+        background: #fafafa;
+      }
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .t-blue {
+        background: #e6f7ff;
+        color: #1890ff;
+      }
+      .t-green {
+        background: #f6ffed;
+        color: #52c41a;
+      }
+      .t-orange {
+        background: #fff7e6;
+        color: #fa8c16;
+      }
+      .t-red {
+        background: #fff1f0;
+        color: #ff4d4f;
+      }
+      .t-gray {
+        background: #f0f0f0;
+        color: #666;
+      }
+      .t-purple {
+        background: #f9f0ff;
+        color: #722ed1;
+      }
+      .btn {
+        padding: 5px 12px;
+        border: 1px solid #d9d9d9;
+        border-radius: 6px;
+        background: #fff;
+        cursor: pointer;
+        font-size: 12px;
+        margin: 0 2px;
+        transition: 0.2s;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        border-color: #1677ff;
+        color: #1677ff;
+      }
+      .btn-primary {
+        background: #1677ff;
+        border-color: #1677ff;
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #4096ff;
+      }
+      .btn-danger {
+        color: #ff4d4f;
+        border-color: #ff4d4f;
+      }
+      .btn-danger:hover {
+        background: #fff1f0;
+      }
+      /* MODAL */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1000;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 40px;
+      }
+      .modal {
+        background: #fff;
+        border-radius: 8px;
+        width: 680px;
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 24px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      }
+      .modal h3 {
+        margin-bottom: 16px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .modal .f-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .modal .f-row > * {
+        flex: 1;
+      }
+      .modal .f-grp {
+        margin-bottom: 12px;
+      }
+      .modal .f-grp label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+        color: #555;
+        font-weight: 500;
+      }
+      .modal .f-grp input,
+      .modal .f-grp select,
+      .modal .f-grp textarea {
+        width: 100%;
+        padding: 7px 11px;
+        border: 1px solid #d9d9d9;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: inherit;
+      }
+      .modal .f-grp textarea {
+        font-family: monospace;
+        min-height: 60px;
+        resize: vertical;
+      }
+      .modal .f-grp .f-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-top: 4px;
+      }
+      .modal .f-grp .f-check input[type="checkbox"] {
+        width: auto;
+      }
+      .modal .f-section {
+        margin: 16px 0 8px;
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+      }
+      .modal .f-section h4 {
+        font-size: 13px;
+        color: #999;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+      .modal-actions {
+        text-align: right;
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+      }
+      .modal-actions button {
+        margin-left: 8px;
+      }
+      /* CHAIN TABLE */
+      .chain-table {
+        width: 100%;
+        border: 1px solid #f0f0f0;
+        border-radius: 6px;
+        margin-top: 8px;
+      }
+      .chain-table th,
+      .chain-table td {
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      .chain-table th {
+        background: #f5f5f5;
+      }
+      /* FOLDER MODAL */
+      .folder-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #f0f0f0;
+        border-radius: 6px;
+        padding: 8px;
+      }
+      .folder-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-bottom: 1px solid #fafafa;
+      }
+      .folder-item:last-child {
+        border-bottom: none;
+      }
+      .folder-item:hover {
+        background: #fafafa;
+      }
+      .folder-item .name {
+        font-weight: 500;
+      }
+      .folder-item .count {
+        color: #999;
+        font-size: 12px;
+      }
+      #err {
+        display: none;
+        background: #fff2f0;
+        border: 1px solid #ffccc7;
+        color: #ff4d4f;
+        padding: 10px 16px;
+        margin-bottom: 12px;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      #loading {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 60px;
+          min-width: 60px;
+        }
+        .sidebar .label,
+        .sidebar .arrow {
+          display: none;
+        }
+        .content {
+          padding: 12px;
+        }
+        .modal {
+          width: 95%;
+        }
+        .f-row {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body id="app-body">
+    <!-- LOGIN -->
+    <div id="login-page" class="login-wrap">
+      <div class="login-box">
+        <h2>Nyanpass 管理面板</h2>
+        <div id="login-err" class="login-err"></div>
+        <div class="f-grp">
+          <label>用户名</label
+          ><input id="login-user" placeholder="admin@example.com" />
+        </div>
+        <div class="f-grp">
+          <label>密码</label
+          ><input id="login-pass" type="password" placeholder="Mật khẩu" />
+        </div>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+          "
+        >
+          <input type="checkbox" id="login-remember" /><label
+            style="color: #888; font-size: 13px; margin: 0; cursor: pointer"
+            >Ghi nhớ đăng nhập (7 ngày)</label
+          >
+        </div>
+        <button class="btn btn-primary" onclick="doLogin()" id="login-btn">
+          登 录
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="main-layout" style="display: none; width: 100%">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo"><span>◇</span> Nyanpass</div>
+        <nav class="sidebar-menu">
+          <div class="menu-group">
+            <div
+              class="menu-group-header"
+              onclick="toggleMenu(this)"
+              data-open="true"
+            >
+              <span class="icon">⚙</span><span class="label">管理</span
+              ><span class="arrow open">▶</span>
+            </div>
+            <div class="menu-sub expanded" id="sub-manage">
+              <div
+                class="menu-item active"
+                data-page="dg"
+                onclick="navTo(this, '设备组管理')"
+              >
+                <span class="dot"></span><span>设备组管理</span>
+              </div>
+              <div
+                class="menu-item"
+                data-page="probe"
+                onclick="window.open('/probe.html', '_blank')"
+              >
+                <span class="dot"></span><span>节点状态(新)</span>
+              </div>
+              <div
+                class="menu-item"
+                data-page="fr"
+                onclick="navTo(this, '转发规则')"
+              >
+                <span class="dot"></span><span>转发规则</span>
+              </div>
+              <div
+                class="menu-item"
+                data-page="users"
+                onclick="navTo(this, '用户管理')"
+              >
+                <span class="dot"></span><span>用户管理</span>
+              </div>
+              <div
+                class="menu-item"
+                data-page="ug"
+                onclick="navTo(this, '用户组管理')"
+              >
+                <span class="dot"></span><span>用户组管理</span>
+              </div>
+            </div>
+          </div>
+        </nav>
+        <div class="sidebar-toggle" onclick="toggleSidebar()">◀</div>
+      </aside>
+      <div class="main">
+        <header class="topbar">
+          <h1 id="page-title">设备组管理</h1>
+          <span
+            style="font-size: 13px; color: #999; cursor: pointer"
+            onclick="doLogout()"
+            >👤 Admin ▾</span
+          >
+        </header>
+        <div class="content"><div id="page-content"></div></div>
+      </div>
+    </div>
+
+    <!-- MODAL -->
+    <div
+      id="modalOverlay"
+      class="modal-overlay"
+      style="display: none"
+      onclick="if (event.target === this) closeModal();"
+    >
+      <div class="modal" id="modalBody"></div>
+    </div>
+
+    <script>
+      var API = "/api/v1",
+        token = "",
+        dgData = [],
+        userData = [],
+        ugData = [],
+        folderData = [];
+
+      // ========== AUTH ==========
+      function doLogin() {
+        var u = g("login-user").value,
+          p = g("login-pass").value,
+          e = g("login-err"),
+          b = g("login-btn");
+        if (!u || !p) {
+          e.textContent = "Vui lòng nhập đầy đủ";
+          e.style.display = "block";
+          return;
+        }
+        b.disabled = true;
+        b.textContent = "Đang đăng nhập...";
+        fetch(API + "/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: u,
+            password: p,
+            remember: document.getElementById("login-remember").checked,
+          }),
+        })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (d) {
+            if (d.code !== 0) throw new Error(d.msg || "Lỗi");
+            token = d.data;
+            localStorage.setItem("Authorization", token);
+            g("login-page").style.display = "none";
+            g("main-layout").style.display = "flex";
+            renderDgPage();
+          })
+          .catch(function (x) {
+            e.textContent = x.message;
+            e.style.display = "block";
+          })
+          .finally(function () {
+            b.disabled = false;
+            b.textContent = "登 录";
+          });
+      }
+      function doLogout() {
+        fetch(API + "/auth/logout", {
+          method: "POST",
+          headers: { Authorization: token },
+        }).finally(function () {
+          token = "";
+          localStorage.removeItem("Authorization");
+          g("login-page").style.display = "flex";
+          g("main-layout").style.display = "none";
+        });
+      }
+      // Auto-login: bo qua login form neu co token, validate ngam
+      (function () {
+        var savedToken = localStorage.getItem("Authorization");
+        if (savedToken) {
+          token = savedToken;
+          g("login-page").style.display = "none";
+          g("main-layout").style.display = "flex";
+          renderDgPage();
+          // Validate trong background, chi xoa khi server xac nhan loi
+          fetch(API + "/user/info", { headers: { Authorization: token } })
+            .then(function (r) {
+              return r.json();
+            })
+            .then(function (d) {
+              if (d.code !== 0 || !d.data || !d.data.username) {
+                localStorage.removeItem("Authorization");
+                token = "";
+                g("login-page").style.display = "flex";
+                g("main-layout").style.display = "none";
+              }
+            })
+            .catch(function () {
+              /* loi mang - giu token */
+            });
+        }
+      })();
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && g("login-page").style.display !== "none")
+          doLogin();
+      });
+
+      // ========== HELPERS ==========
+      function g(id) {
+        return document.getElementById(id);
+      }
+      function esc(s) {
+        return (s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+      function fmt(b) {
+        if (b >= 1099511627776) return (b / 1099511627776).toFixed(1) + " TB";
+        if (b >= 1073741824) return (b / 1073741824).toFixed(1) + " GB";
+        if (b >= 1048576) return (b / 1048576).toFixed(1) + " MB";
+        return b + " B";
+      }
+      function pe(msg) {
+        var e = g("err");
+        if (e) {
+          e.textContent = "Lỗi: " + msg;
+          e.style.display = "block";
+        }
+      }
+      function q(u, o) {
+        o = o || {};
+        o.headers = o.headers || {};
+        o.headers["Authorization"] = token;
+        if (o.body && typeof o.body === "object") {
+          o.headers["Content-Type"] = "application/json";
+          o.body = JSON.stringify(o.body);
+        }
+        return fetch(u, o)
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (d) {
+            if (d.code !== 0) throw new Error(d.msg || "Lỗi API");
+            return d;
+          });
+      }
+      function api(u) {
+        return q(u);
+      }
+      function apiPut(u, d) {
+        return q(u, { method: "PUT", body: d });
+      }
+      function apiPost(u, d) {
+        return q(u, { method: "POST", body: d });
+      }
+      function apiDel(u, d) {
+        return q(u, { method: "DELETE", body: d || {} });
+      }
+
+      // ========== SIDEBAR ==========
+      function toggleSidebar() {
+        var s = g("sidebar");
+        s.classList.toggle("collapsed");
+        s.querySelector(".sidebar-toggle").textContent = s.classList.contains(
+          "collapsed",
+        )
+          ? "▶"
+          : "◀";
+      }
+      function toggleMenu(h) {
+        var o = h.getAttribute("data-open") === "true";
+        h.setAttribute("data-open", o ? "false" : "true");
+        h.querySelector(".arrow").classList.toggle("open", !o);
+        var s = h.nextElementSibling;
+        s.classList.toggle("expanded", !o);
+        s.classList.toggle("collapsed", o);
+      }
+      function navTo(item, title) {
+        document.querySelectorAll(".menu-item").forEach(function (el) {
+          el.classList.remove("active");
+        });
+        item.classList.add("active");
+        g("page-title").textContent = title;
+        var p = item.getAttribute("data-page");
+        if (p === "dg") renderDgPage();
+        else if (p === "users") renderUsersPage();
+        else if (p === "ug") renderUgPage();
+        else if (p === "fr") renderFrPage();
+      }
+
+      // ========== DEVICE GROUP PAGE ==========
+      var DG_TYPES = [
+        { v: "DeviceGroupType_Inbound", l: "入口", c: "t-blue" },
+        { v: "DeviceGroupType_OutboundBySite", l: "出口", c: "t-green" },
+        { v: "DeviceGroupType_OutboundByUser", l: "单端出口", c: "t-purple" },
+        { v: "DeviceGroupType_AgentOnly", l: "仅监控", c: "t-orange" },
+        { v: "DeviceGroupType_ChainOutbound", l: "链式出口", c: "t-red" },
+      ];
+      function typeLabel(t) {
+        var f = DG_TYPES.find(function (x) {
+          return x.v === t;
+        });
+        return f || { l: t, c: "" };
+      }
+      function renderDgPage() {
+        dgData = [];
+        g("page-content").innerHTML =
+          '<div class="card">' +
+          '<div class="card-header"><h2>设备组列表</h2><div>' +
+          '<button class="btn btn-primary" onclick="openDgModal()">+ 添加设备组</button> ' +
+          '<button class="btn btn-danger" onclick="batchResetTraffic()">清空流量</button> ' +
+          '<button class="btn" onclick="openFolderModal()">管理分组</button> ' +
+          '<button class="btn" onclick="loadDg()">↻ 刷新</button>' +
+          '</div></div><div id="err"></div><div id="loading">Đang tải...</div>' +
+          '<div class="card-body"><table id="dg-tbl" style="display:none"><thead><tr>' +
+          "<th>ID</th><th>名称</th><th>类型</th><th>Token</th><th>端口范围</th><th>在线</th><th>流量</th><th>排序</th><th>操作</th>" +
+          '</tr></thead><tbody id="dg-tbody"></tbody></table></div></div>';
+        loadDg();
+      }
+      function loadDg() {
+        var lm = g("loading"),
+          tbl = g("dg-tbl"),
+          er = g("err");
+        if (lm) lm.style.display = "block";
+        if (tbl) tbl.style.display = "none";
+        if (er) er.style.display = "none";
+        // Fetch both DG list and node status
+        Promise.all([
+          api(API + "/admin/devicegroup"),
+          api(API + "/system/node/status").catch(function () {
+            return { data: [] };
+          }),
+        ])
+          .then(function (results) {
+            dgData = results[0].data || [];
+            var nodeData = results[1].data || [];
+            // Build server count map
+            var serverCount = {};
+            nodeData.forEach(function (g) {
+              var live = g.servers.filter(function (s) {
+                return s.handle && s.online;
+              }).length;
+              serverCount[g.gid] = live;
+            });
+            var rows = "";
+            dgData.forEach(function (d) {
+              var lb = typeLabel(d.type);
+              rows +=
+                "<tr><td>" +
+                d.id +
+                "</td><td><strong>" +
+                esc(d.name) +
+                '</strong></td><td><span class="tag ' +
+                lb.c +
+                '">' +
+                lb.l +
+                '</span></td><td><code style="font-size:11px" title="' +
+                esc(d.token || "") +
+                '">' +
+                (d.token || "").substring(0, 14) +
+                "...</code></td><td>" +
+                (d.port_range || "-") +
+                '</td><td style="text-align:center"><b>' +
+                (serverCount[d.id] || 0) +
+                "</b></td><td>" +
+                fmt(d.traffic_used || 0) +
+                "</td><td>" +
+                (d.show_order || 0) +
+                '</td><td style="white-space:nowrap;position:relative">' +
+                '<button class="btn" onclick="openDgModal(' +
+                d.id +
+                ')">编辑</button> ' +
+                (d.token
+                  ? '<button class="btn" onclick="toggleDgDock(' +
+                    d.id +
+                    ',this)" style="position:relative">对接 ▾</button>'
+                  : "") +
+                '<button class="btn" onclick="resetToken(' +
+                d.id +
+                ')">重置</button> ' +
+                '<button class="btn btn-danger" onclick="delDg(' +
+                d.id +
+                ')">删除</button>' +
+                "</td></tr>";
+            });
+            g("dg-tbody").innerHTML = rows;
+            if (tbl) tbl.style.display = "";
+            if (lm) lm.style.display = "none";
+          })
+          .catch(function (e) {
+            pe(e.message);
+            if (lm) lm.style.display = "none";
+          });
+      }
+      function batchResetTraffic() {
+        var ids = dgData.map(function (d) {
+          return d.id;
+        });
+        if (ids.length === 0) return;
+        if (
+          !confirm(
+            "Xác nhận xóa TOÀN BỘ traffic của " + ids.length + " device group?",
+          )
+        )
+          return;
+        apiPost(API + "/admin/devicegroup/reset_traffic", { ids: ids })
+          .then(function () {
+            loadDg();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+
+      // ========== DG FORM (ĐỘNG THEO TYPE) ==========
+      function openDgModal(id) {
+        var d = id
+          ? dgData.find(function (x) {
+              return x.id === id;
+            })
+          : null;
+        var html =
+          "<h3>" +
+          (d ? "编辑设备组 #" + d.id + " — " + esc(d.name) : "添加设备组") +
+          "</h3>";
+        // 对接 section - hien thi khi sua group co token
+        if (d && d.token) {
+          var panelUrl = window.location.origin;
+          var installCmd =
+            "bash <(curl -fLSs " +
+            panelUrl +
+            "/download/install.sh) rel_nodeclient -t " +
+            d.token +
+            " -u " +
+            panelUrl;
+          html +=
+            '<div style="background:#f6f8fa;border:1px solid #e8e8e8;border-radius:8px;padding:12px;margin-bottom:12px">';
+          html += "<b>对接</b>";
+          html +=
+            '<div style="margin-top:6px;font-size:12px;color:#666">安装命令:</div>';
+          html +=
+            '<div style="display:flex;gap:4px;margin-top:4px"><input id="f_install_cmd" style="flex:1;font-family:monospace;font-size:11px;padding:6px 8px;border:1px solid #d9d9d9;border-radius:4px" value="' +
+            esc(installCmd) +
+            '" readonly>';
+          html +=
+            '<button class="btn" style="font-size:11px;white-space:nowrap" onclick="copyInstallCmd()">📋 复制</button></div>';
+          html +=
+            '<div style="margin-top:8px;font-size:11px;color:#999">Token: ' +
+            d.token.substring(0, 20) +
+            '... <button class="btn" style="font-size:11px" onclick="resetToken(' +
+            d.id +
+            ')">重置Token</button></div>';
+          html += "</div>";
+        }
+        html +=
+          '<div class="f-row"><div class="f-grp"><label>名称 *</label><input id="f_name" value="' +
+          (d ? esc(d.name) : "") +
+          '"></div><div class="f-grp"><label>类型 *</label><select id="f_type" onchange="onTypeChange()">';
+        DG_TYPES.forEach(function (t) {
+          html +=
+            '<option value="' +
+            t.v +
+            '"' +
+            (d && d.type === t.v ? " selected" : "") +
+            ">" +
+            t.l +
+            "</option>";
+        });
+        html += "</select></div></div>";
+        html += '<div id="f_type_fields"></div>';
+        html +=
+          '<div class="modal-actions"><button class="btn" onclick="closeModal()">Hủy</button> <button class="btn btn-primary" onclick="submitDg(' +
+          (id || 0) +
+          ')">' +
+          (d ? "Cập nhật" : "创建") +
+          "</button></div>";
+        g("modalBody").innerHTML = html;
+        g("modalOverlay").style.display = "flex";
+        onTypeChange(d); // render fields for current type
+      }
+      function copyInstallCmd() {
+        var el = g("f_install_cmd");
+        if (el) {
+          el.select();
+          document.execCommand("copy");
+          alert("Đã copy lệnh cài đặt!");
+        }
+      }
+      function copyDgCmd(cmd) {
+        var ta = document.createElement("textarea");
+        ta.value = cmd;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        alert("Đã copy lệnh!");
+      }
+      function copyDgInstall(id) {
+        var d = dgData.find(function (x) {
+          return x.id === id;
+        });
+        if (!d || !d.token) return;
+        var panelUrl = window.location.origin;
+        var cmd =
+          "bash <(curl -fLSs " +
+          panelUrl +
+          "/download/install.sh) rel_nodeclient -t " +
+          d.token +
+          " -u " +
+          panelUrl;
+        copyDgCmd(cmd);
+      }
+      function copyDgOffline(id) {
+        var d = dgData.find(function (x) {
+          return x.id === id;
+        });
+        if (!d || !d.token) return;
+        var panelUrl = window.location.origin;
+        var cmd =
+          "wget " +
+          panelUrl +
+          "/download/offline.zip && unzip -d /tmp/nyanpass -o offline.zip && bash /tmp/nyanpass/offline.sh rel_nodeclient -t " +
+          d.token +
+          " -u " +
+          panelUrl;
+        copyDgCmd(cmd);
+      }
+      function copyDgUninstall() {
+        copyDgCmd(
+          "rm -f /etc/systemd/system/nyanpass.service ; rm -rf /opt/nyanpass ; systemctl disable --now nyanpass",
+        );
+      }
+      function toggleDgDock(id, btn) {
+        var existing = document.getElementById("dg-dock-popup");
+        if (existing) {
+          existing.remove();
+          return;
+        }
+        var d = dgData.find(function (x) {
+          return x.id === id;
+        });
+        if (!d || !d.token) return;
+
+        var bRect = btn.getBoundingClientRect();
+        var p = document.createElement("div");
+        p.id = "dg-dock-popup";
+        p.style.cssText =
+          "position:fixed;z-index:9999;background:#fff;border:1px solid #d9d9d9;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);width:300px;padding:0";
+
+        function mi(label, fn, c) {
+          var r = document.createElement("div");
+          r.textContent = label;
+          r.style.cssText =
+            "padding:8px 14px;cursor:pointer;font-size:12px;color:" +
+            (c || "#333");
+          r.onmouseenter = function () {
+            r.style.background = c === "#ff4d4f" ? "#fff1f0" : "#f5f5f5";
+          };
+          r.onmouseleave = function () {
+            r.style.background = "";
+          };
+          r.onclick = function () {
+            fn();
+            p.remove();
+          };
+          p.appendChild(r);
+        }
+
+        var title = document.createElement("div");
+        title.textContent = d.name + " — 对接";
+        title.style.cssText =
+          "padding:8px 14px;font-weight:600;font-size:13px;border-bottom:1px solid #f0f0f0;color:#333";
+        p.appendChild(title);
+
+        mi("📋 复制在线安装命令", function () {
+          copyDgInstall(id);
+        });
+        var sep1 = document.createElement("div");
+        sep1.style.cssText = "border-bottom:1px solid #f0f0f0";
+        p.appendChild(sep1);
+        mi("📦 离线部署", function () {
+          copyDgOffline(id);
+        });
+        var sep2 = document.createElement("div");
+        sep2.style.cssText = "border-bottom:1px solid #f0f0f0";
+        p.appendChild(sep2);
+        mi(
+          "🗑 复制卸载命令",
+          function () {
+            copyDgUninstall();
+          },
+          "#ff4d4f",
+        );
+        var sep3 = document.createElement("div");
+        sep3.style.cssText = "border-bottom:1px solid #f0f0f0";
+        p.appendChild(sep3);
+        mi(
+          "🔍 查看节点配置 (调试用)",
+          function () {
+            window.open("/api/v1/client/config_v2?token=" + d.token, "_blank");
+          },
+          "#1677ff",
+        );
+
+        p.style.top = bRect.bottom + 4 + "px";
+        p.style.left = Math.min(bRect.left, window.innerWidth - 320) + "px";
+        document.body.appendChild(p);
+
+        setTimeout(function () {
+          document.addEventListener("click", function closeDock(e) {
+            if (!p.contains(e.target) && e.target !== btn) {
+              p.remove();
+              document.removeEventListener("click", closeDock);
+            }
+          });
+        }, 10);
+      }
+      function onTypeChange(d) {
+        var t = g("f_type").value,
+          html = "",
+          cfg = {};
+        if (d) {
+          try {
+            cfg = JSON.parse(d.config || "{}");
+          } catch (e) {}
+        }
+        switch (t) {
+          case "DeviceGroupType_Inbound":
+            html += '<div class="f-section"><h4>入口配置</h4></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>端口范围</label><input id="f_port_range" value="' +
+              (d ? d.port_range || "10-65535" : "10-65535") +
+              '"><div style="font-size:11px;color:#999;margin-top:2px">入口允许监听的端口范围，格式: 10000-20000,30000-50000</div></div>' +
+              '<div class="f-grp"><label>连接地址</label><input id="f_connect_host" value="' +
+              (d ? d.connect_host || "" : "") +
+              '"></div></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>倍率</label><input id="f_ratio" type="number" value="' +
+              (d ? d.ratio || "0" : "0") +
+              '"></div><div class="f-grp"><label>允许GID</label><input id="f_gid" value="' +
+              (d ? d.enable_for_gid || "1,2" : "1,2") +
+              '"></div></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>故障切换组ID</label><input id="f_fb" type="number" value="' +
+              (d ? d.fallback_group || 0 : 0) +
+              '"></div><div class="f-grp"><label>排序</label><input id="f_order" type="number" value="' +
+              (d ? d.show_order || 0 : 0) +
+              '"></div></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>在探针中隐藏</label><select id="f_hide"><option value="0"' +
+              (d && d.hide_status === 0 ? " selected" : "") +
+              '>不隐藏</option><option value="1"' +
+              (d && d.hide_status === 1 ? " selected" : "") +
+              '>部分隐藏</option><option value="2"' +
+              (d && d.hide_status === 2 ? " selected" : "") +
+              '>完全隐藏</option></select></div><div class="f-grp"><label>直接转发 / 入口直出策略</label><select id="f_direct"><option value="0"' +
+              (cfg.direct_policy !== 1 && cfg.direct_policy !== 2
+                ? " selected"
+                : "") +
+              '>无</option><option value="1"' +
+              (cfg.direct_policy === 1 ? " selected" : "") +
+              '>可选直出</option><option value="2"' +
+              (cfg.direct_policy === 2 ? " selected" : "") +
+              '>强制直出</option></select><div style="font-size:11px;color:#999;margin-top:2px">无需出口节点，由入口直接转发。适用于入口机器可直接访问国际互联网。</div></div></div>';
+            html +=
+              '<div class="f-grp"><div class="f-check"><input type="checkbox" id="f_udp"' +
+              (cfg.udp_smart_bind ? " checked" : "") +
+              "><label>UDP 智能绑定 (源进源出)</label></div></div>";
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>负载下线 (秒)</label><input id="f_down_sec" type="number" value="' +
+              (d && d.down_sec ? d.down_sec : 0) +
+              '"><div style="font-size:11px;color:#999;margin-top:2px">服务器未通信超过此秒数视为下线，0=默认</div></div>' +
+              '<div class="f-grp"><label>限制入口</label><textarea id="f_allowed_in" rows="2">' +
+              (d ? d.allowed_in || "" : "") +
+              "</textarea></div></div>";
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>允许出口</label><textarea id="f_allowed_out" rows="2">' +
+              (d ? d.allowed_out || "" : "") +
+              "</textarea></div>" +
+              '<div class="f-grp"><label>屏蔽协议</label><input id="f_blocked" value="' +
+              (cfg.blocked_protocol || "") +
+              '"></div></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>屏蔽域名</label><input id="f_blocked_host" value="' +
+              (cfg.blocked_host || "") +
+              '"></div>' +
+              '<div class="f-grp"><label>屏蔽路径</label><input id="f_blocked_path" value="' +
+              (cfg.blocked_path || "") +
+              '"></div></div>';
+            break;
+          case "DeviceGroupType_OutboundBySite":
+            html +=
+              '<div class="f-section"><h4>出口配置 (OutboundBySite)</h4></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>倍率</label><input id="f_ratio" type="number" value="' +
+              (d ? d.ratio || "0" : "0") +
+              '"></div><div class="f-grp"><label>允许GID</label><input id="f_gid" value="' +
+              (d ? d.enable_for_gid || "1,2" : "1,2") +
+              '"></div></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>故障切换组ID</label><input id="f_fb" type="number" value="' +
+              (d ? d.fallback_group || 0 : 0) +
+              '"></div><div class="f-grp"><label>排序</label><input id="f_order" type="number" value="' +
+              (d ? d.show_order || 0 : 0) +
+              '"></div></div>';
+            html +=
+              '<div class="f-grp"><label>显示协议</label><select id="f_proto"><option value=""' +
+              (cfg.protocol || cfg.display_protocol ? "" : " selected") +
+              '>Mặc định</option><option value="tls"' +
+              (cfg.protocol === "tls" || cfg.display_protocol === "tls"
+                ? " selected"
+                : "") +
+              '>TLS</option><option value="tls_simple"' +
+              (cfg.protocol === "tls_simple" ||
+              cfg.display_protocol === "tls_simple"
+                ? " selected"
+                : "") +
+              '>TLS Simple</option><option value="ws"' +
+              (cfg.protocol === "ws" || cfg.display_protocol === "ws"
+                ? " selected"
+                : "") +
+              '>WebSocket</option><option value="http"' +
+              (cfg.protocol === "http" || cfg.display_protocol === "http"
+                ? " selected"
+                : "") +
+              ">HTTP</option></select></div>";
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>接受 Proxy Protocol</label><select id="f_accept_proxy"><option value="0">不启用</option><option value="1"' +
+              (cfg.accept_proxy_protocol === 1 ||
+              (d && d.accept_proxy_protocol === 1)
+                ? " selected"
+                : "") +
+              '>启用</option></select></div><div class="f-grp"><label>发送 Proxy Protocol</label><select id="f_send_proxy"><option value="0">不启用</option><option value="1"' +
+              (cfg.proxy_protocol === 1 || (d && d.proxy_protocol === 1)
+                ? " selected"
+                : "") +
+              ">启用</option></select></div></div>";
+            break;
+          case "DeviceGroupType_OutboundByUser":
+            html += '<div class="f-section"><h4>单端出口配置</h4></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>倍率</label><input id="f_ratio" type="number" value="' +
+              (d ? d.ratio || "0" : "0") +
+              '"></div><div class="f-grp"><label>允许GID</label><input id="f_gid" value="' +
+              (d ? d.enable_for_gid || "1,2" : "1,2") +
+              '"></div></div>';
+            html +=
+              '<div class="f-grp"><label>排序</label><input id="f_order" type="number" value="' +
+              (d ? d.show_order || 0 : 0) +
+              '"></div>';
+            html +=
+              '<div class="f-grp"><label>允许出口 (allowed_out)</label><textarea id="f_allowed_out">' +
+              (d ? d.allowed_out || "" : "") +
+              "</textarea></div>";
+            break;
+          case "DeviceGroupType_AgentOnly":
+            html += '<div class="f-section"><h4>仅监控配置</h4></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>倍率</label><input id="f_ratio" type="number" value="' +
+              (d ? d.ratio || "0" : "0") +
+              '"></div><div class="f-grp"><label>允许GID</label><input id="f_gid" value="' +
+              (d ? d.enable_for_gid || "1,2" : "1,2") +
+              '"></div></div>';
+            html +=
+              '<div class="f-grp"><label>排序</label><input id="f_order" type="number" value="' +
+              (d ? d.show_order || 0 : 0) +
+              '"></div>';
+            break;
+          case "DeviceGroupType_ChainOutbound":
+            html += '<div class="f-section"><h4>链式出口配置</h4></div>';
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>倍率</label><input id="f_ratio" type="number" value="' +
+              (d ? d.ratio || "0" : "0") +
+              '"></div><div class="f-grp"><label>允许GID</label><input id="f_gid" value="' +
+              (d ? d.enable_for_gid || "1,2" : "1,2") +
+              '"></div></div>';
+            html +=
+              '<div class="f-grp"><label>排序</label><input id="f_order" type="number" value="' +
+              (d ? d.show_order || 0 : 0) +
+              '"></div>';
+            html += '<div class="f-section"><h4>Chuỗi Outbound</h4></div>';
+            var chain = (d && d.chain) || [];
+            html +=
+              '<table class="chain-table"><thead><tr><th>Seq</th><th>This Hop (GID)</th><th>Next Hop (GID)</th><th>Mux</th><th></th></tr></thead><tbody id="f_chain_tbody">';
+            chain.forEach(function (c, i) {
+              html += chainRow(i, c);
+            });
+            html += "</tbody></table>";
+            html +=
+              '<button class="btn" style="margin-top:8px" onclick="addChainRow()">+ Thêm Hop</button>';
+            break;
+        }
+        // Common fields
+        html += '<div class="f-section"><h4>Chung</h4></div>';
+        html +=
+          '<div class="f-grp"><label>备注 (Note)</label><textarea id="f_note">' +
+          (d ? d.note || "" : "") +
+          "</textarea></div>";
+        html +=
+          '<div class="f-grp"><label>Cấu hình bổ sung (JSON)</label><textarea id="f_config_extra">' +
+          (d ? d.config || "{}" : "{}") +
+          "</textarea></div>";
+
+        g("f_type_fields").innerHTML = html;
+      }
+      function chainRow(i, c) {
+        return (
+          '<tr><td><input type="number" class="f_chain_seq" value="' +
+          (c ? c.seq || i : i) +
+          '" style="width:60px"></td><td><input type="number" class="f_chain_this" value="' +
+          (c ? c.this_hop || "" : "") +
+          '" placeholder="GID"></td><td><input type="number" class="f_chain_next" value="' +
+          (c ? c.next_hop || "" : "") +
+          '" placeholder="GID"></td><td><select class="f_chain_mux"><option value="0"' +
+          (c && !c.mux ? " selected" : "") +
+          '>Không</option><option value="1"' +
+          (c && c.mux ? " selected" : "") +
+          '>Có</option></select></td><td><button class="btn btn-danger" onclick="this.closest(\'tr\').remove()">Xóa</button></td></tr>'
+        );
+      }
+      function addChainRow() {
+        var tbody = g("f_chain_tbody");
+        if (tbody) {
+          var i = tbody.querySelectorAll("tr").length;
+          tbody.insertAdjacentHTML("beforeend", chainRow(i, null));
+        }
+      }
+
+      function buildConfig() {
+        var t = g("f_type").value,
+          cfg = {};
+        var jsonStr = g("f_config_extra") ? g("f_config_extra").value : "{}";
+        try {
+          cfg = JSON.parse(jsonStr);
+        } catch (e) {
+          cfg = {};
+        }
+        switch (t) {
+          case "DeviceGroupType_Inbound":
+            if (g("f_udp") && g("f_udp").checked) cfg.udp_smart_bind = true;
+            else delete cfg.udp_smart_bind;
+            if (g("f_direct")) {
+              var dp = parseInt(g("f_direct").value);
+              if (dp) cfg.direct_policy = dp;
+              else delete cfg.direct_policy;
+            }
+            if (g("f_blocked") && g("f_blocked").value)
+              cfg.blocked_protocol = g("f_blocked").value;
+            else delete cfg.blocked_protocol;
+            if (g("f_blocked_host") && g("f_blocked_host").value)
+              cfg.blocked_host = g("f_blocked_host").value;
+            else delete cfg.blocked_host;
+            if (g("f_blocked_path") && g("f_blocked_path").value)
+              cfg.blocked_path = g("f_blocked_path").value;
+            else delete cfg.blocked_path;
+            break;
+          case "DeviceGroupType_OutboundBySite":
+            if (g("f_proto") && g("f_proto").value) {
+              cfg.protocol = g("f_proto").value;
+              cfg.display_protocol = g("f_proto").value;
+            } else {
+              delete cfg.protocol;
+              delete cfg.display_protocol;
+            }
+            if (g("f_accept_proxy") && parseInt(g("f_accept_proxy").value))
+              cfg.accept_proxy_protocol = 1;
+            else delete cfg.accept_proxy_protocol;
+            if (g("f_send_proxy") && parseInt(g("f_send_proxy").value))
+              cfg.proxy_protocol = 1;
+            else delete cfg.proxy_protocol;
+            break;
+          case "DeviceGroupType_OutboundByUser":
+            break;
+          case "DeviceGroupType_AgentOnly":
+            break;
+          case "DeviceGroupType_ChainOutbound":
+            var chain = [];
+            document
+              .querySelectorAll("#f_chain_tbody tr")
+              .forEach(function (tr) {
+                var inputs = tr.querySelectorAll("input,select");
+                chain.push({
+                  seq: parseInt(inputs[0].value) || 0,
+                  this_hop: parseInt(inputs[1].value) || 0,
+                  next_hop: parseInt(inputs[2].value) || 0,
+                  mux: inputs[3].value === "1",
+                });
+              });
+            if (chain.length > 0) cfg.chain = chain;
+            break;
+        }
+        return JSON.stringify(cfg);
+      }
+      function submitDg(id) {
+        var data = {
+          name: g("f_name").value,
+          type: g("f_type").value,
+          config: buildConfig(),
+        };
+        if (!data.name) {
+          pe("Vui lòng nhập tên");
+          return;
+        }
+        if (g("f_port_range")) data.port_range = g("f_port_range").value;
+        if (g("f_connect_host")) data.connect_host = g("f_connect_host").value;
+        if (g("f_gid")) data.enable_for_gid = g("f_gid").value;
+        if (g("f_ratio")) data.ratio = g("f_ratio").value;
+        if (g("f_fb")) data.fallback_group = parseInt(g("f_fb").value) || 0;
+        if (g("f_order")) data.show_order = parseInt(g("f_order").value) || 0;
+        if (g("f_hide")) data.hide_status = parseInt(g("f_hide").value) || 0;
+        if (g("f_down_sec"))
+          data.down_sec = parseInt(g("f_down_sec").value) || 0;
+        if (g("f_allowed_in")) data.allowed_in = g("f_allowed_in").value;
+        if (g("f_allowed_out")) data.allowed_out = g("f_allowed_out").value;
+        if (g("f_note")) data.note = g("f_note").value;
+        if (g("f_accept_proxy"))
+          data.accept_proxy_protocol = parseInt(g("f_accept_proxy").value) || 0;
+        if (g("f_send_proxy"))
+          data.proxy_protocol = parseInt(g("f_send_proxy").value) || 0;
+        var p = id
+          ? apiPost(API + "/admin/devicegroup/" + id, data)
+          : apiPut(API + "/admin/devicegroup", data);
+        p.then(function () {
+          closeModal();
+          loadDg();
+        }).catch(function (e) {
+          pe(e.message);
+        });
+      }
+      function delDg(id) {
+        if (!confirm("Xác nhận xóa #" + id + "?")) return;
+        apiDel(API + "/admin/devicegroup", { ids: [id] })
+          .then(function () {
+            loadDg();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function resetToken(id) {
+        apiPost(API + "/admin/devicegroup/" + id + "/reset_token")
+          .then(function (d) {
+            alert("Token mới: " + (d.data || "").substring(0, 20) + "...");
+            loadDg();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function closeModal() {
+        g("modalOverlay").style.display = "none";
+      }
+
+      // ========== FOLDER MODAL ==========
+      function openFolderModal() {
+        api(API + "/admin/devicegroup/folder")
+          .then(function (d) {
+            folderData = d.data || { folders: [], unclassified_count: 0 };
+            var html = "<h3>管理分组</h3>";
+            html +=
+              '<div class="f-row"><div class="f-grp"><label>Tạo thư mục mới</label><div style="display:flex;gap:4px"><input id="f_fold_name" placeholder="Tên thư mục"><button class="btn btn-primary" onclick="createFolder()">Tạo</button></div></div></div>';
+            html += '<div class="f-section"><h4>Danh sách thư mục</h4></div>';
+            html += '<div class="folder-list">';
+            var folds = folderData.folders || [];
+            if (folds.length === 0)
+              html +=
+                '<div style="text-align:center;color:#999;padding:20px">Chưa có thư mục nào</div>';
+            folds.forEach(function (f) {
+              html +=
+                '<div class="folder-item"><span class="name">' +
+                esc(f.name) +
+                '</span> <span class="count">ID: ' +
+                f.id +
+                '</span> <button class="btn btn-danger" onclick="delFolder(' +
+                f.id +
+                ')">Xóa</button></div>';
+            });
+            html += "</div>";
+            html +=
+              '<div style="margin-top:8px;color:#999;font-size:12px">Chưa phân loại: ' +
+              (folderData.unclassified_count || 0) +
+              " device group</div>";
+            html +=
+              '<div class="modal-actions"><button class="btn" onclick="closeModal()">Đóng</button></div>';
+            g("modalBody").innerHTML = html;
+            g("modalOverlay").style.display = "flex";
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function createFolder() {
+        var name = g("f_fold_name").value;
+        if (!name) {
+          pe("Nhập tên thư mục");
+          return;
+        }
+        apiPut(API + "/admin/devicegroup/folder", { name: name })
+          .then(function () {
+            openFolderModal();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function delFolder(id) {
+        if (!confirm("Xác nhận xóa thư mục?")) return;
+        apiDel(API + "/admin/devicegroup/folder", { ids: [id] })
+          .then(function () {
+            openFolderModal();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+
+      // ========== USER PAGES (giữ nguyên) ==========
+      function renderUsersPage() {
+        userData = [];
+        g("page-content").innerHTML =
+          '<div class="card"><div class="card-header"><h2>用户列表</h2><div><button class="btn btn-primary" onclick="openUserModal()">+ 创建用户</button> <button class="btn" onclick="loadUsers()">↻ 刷新</button></div></div><div id="err"></div><div id="loading">Đang tải...</div><div class="card-body"><table id="u-tbl" style="display:none"><thead><tr><th>ID</th><th>用户名</th><th>用户组</th><th>角色</th><th>流量(已用/总额)</th><th>规则数</th><th>到期</th><th>状态</th><th>操作</th></tr></thead><tbody id="u-tbody"></tbody></table></div></div>';
+        loadUsers();
+      }
+      function loadUsers() {
+        var lm = g("loading"),
+          tbl = g("u-tbl"),
+          er = g("err");
+        if (lm) lm.style.display = "block";
+        if (tbl) tbl.style.display = "none";
+        if (er) er.style.display = "none";
+        api(API + "/admin/user")
+          .then(function (d) {
+            userData = d.data || [];
+            var rows = "";
+            userData.forEach(function (u) {
+              rows +=
+                "<tr><td>" +
+                u.id +
+                "</td><td><strong>" +
+                esc(u.username) +
+                "</strong></td><td>GID " +
+                u.group_id +
+                '</td><td><span class="tag ' +
+                (u.admin ? "t-red" : "t-gray") +
+                '">' +
+                (u.admin ? "管理员" : "用户") +
+                "</span></td><td>" +
+                fmt(u.traffic_used) +
+                " / " +
+                fmt(u.traffic_enable) +
+                "</td><td>" +
+                u.max_rules +
+                "</td><td>" +
+                (u.expire > 0
+                  ? new Date(u.expire * 1000).toLocaleDateString("vi-VN")
+                  : "Vĩnh viễn") +
+                '</td><td><span class="tag ' +
+                (u.banned ? "t-red" : "t-green") +
+                '">' +
+                (u.banned ? "已禁用" : "正常") +
+                '</span></td><td style="white-space:nowrap"><button class="btn" onclick="openUserModal(' +
+                u.id +
+                ')">Sửa</button> <button class="btn" onclick="resetPwd(' +
+                u.id +
+                ')">Đổi MK</button> <button class="btn btn-danger" onclick="delUser(' +
+                u.id +
+                ')">Xóa</button></td></tr>';
+            });
+            g("u-tbody").innerHTML = rows;
+            if (tbl) tbl.style.display = "";
+            if (lm) lm.style.display = "none";
+          })
+          .catch(function (e) {
+            pe(e.message);
+            if (lm) lm.style.display = "none";
+          });
+      }
+      function openUserModal(id) {
+        var d = id
+          ? userData.find(function (x) {
+              return x.id === id;
+            })
+          : null;
+        var h = "<h3>" + (d ? "Sửa: " + esc(d.username) : "创建用户") + "</h3>";
+        if (!d) {
+          h +=
+            '<div class="f-row"><div class="f-grp"><label>用户名 *</label><input id="f_u_name"></div><div class="f-grp"><label>密码 *</label><input id="f_u_pass" type="password"></div></div>';
+        }
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>用户组ID</label><input id="f_u_gid" type="number" value="' +
+          (d ? d.group_id || 1 : 1) +
+          '"></div><div class="f-grp"><label>最大规则数</label><input id="f_u_rules" type="number" value="' +
+          (d ? d.max_rules || 0 : 0) +
+          '"></div></div>';
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>速度限制</label><input id="f_u_speed" type="number" value="' +
+          (d ? d.speed_limit || 0 : 0) +
+          '"></div><div class="f-grp"><label>流量总额</label><input id="f_u_traffic" type="number" value="' +
+          (d ? d.traffic_enable || 0 : 0) +
+          '"></div></div>';
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>IP限制</label><input id="f_u_ip" type="number" value="' +
+          (d ? d.ip_limit || 0 : 0) +
+          '"></div><div class="f-grp"><label>连接限制</label><input id="f_u_conn" type="number" value="' +
+          (d ? d.connection_limit || 0 : 0) +
+          '"></div></div>';
+        h +=
+          '<div class="f-row"><div class="f-grp"><div class="f-check"><input type="checkbox" id="f_u_admin"' +
+          (d && d.admin ? " checked" : "") +
+          '> <label>管理员</label></div></div><div class="f-grp"><div class="f-check"><input type="checkbox" id="f_u_banned"' +
+          (d && d.banned ? " checked" : "") +
+          "> <label>禁用</label></div></div></div>";
+        h +=
+          '<div class="modal-actions"><button class="btn" onclick="closeModal()">Hủy</button> <button class="btn btn-primary" onclick="submitUser(' +
+          (id || 0) +
+          ')">' +
+          (d ? "Cập nhật" : "Tạo") +
+          "</button></div>";
+        g("modalBody").innerHTML = h;
+        g("modalOverlay").style.display = "flex";
+      }
+      function submitUser(id) {
+        var data = {
+          group_id: parseInt(g("f_u_gid").value) || 1,
+          max_rules: parseInt(g("f_u_rules").value) || 0,
+          speed_limit: parseInt(g("f_u_speed").value) || 0,
+          traffic_enable: parseInt(g("f_u_traffic").value) || 0,
+          ip_limit: parseInt(g("f_u_ip").value) || 0,
+          connection_limit: parseInt(g("f_u_conn").value) || 0,
+          admin: g("f_u_admin").checked,
+          banned: g("f_u_banned").checked,
+        };
+        if (!id) {
+          data.username = g("f_u_name").value;
+          data.password = g("f_u_pass").value;
+          if (!data.username || !data.password) {
+            pe("Vui lòng nhập đầy đủ");
+            return;
+          }
+        }
+        var p = id
+          ? apiPost(API + "/admin/user/" + id, data)
+          : apiPut(API + "/admin/user", data);
+        p.then(function () {
+          closeModal();
+          loadUsers();
+        }).catch(function (e) {
+          pe(e.message);
+        });
+      }
+      function delUser(id) {
+        if (!confirm("Xác nhận xóa user #" + id + "?")) return;
+        apiDel(API + "/admin/user", { ids: [id] })
+          .then(function () {
+            loadUsers();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function resetPwd(id) {
+        var p = prompt("Nhập mật khẩu mới:");
+        if (!p) return;
+        apiPost(API + "/admin/user/" + id + "/reset_password", { password: p })
+          .then(function () {
+            alert("Đổi mật khẩu thành công");
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+
+      // ========== USER GROUP PAGE (giữ nguyên) ==========
+      function renderUgPage() {
+        ugData = [];
+        g("page-content").innerHTML =
+          '<div class="card"><div class="card-header"><h2>用户组列表</h2><div><button class="btn btn-primary" onclick="openUgModal()">+ 创建用户组</button> <button class="btn" onclick="loadUg()">↻ 刷新</button></div></div><div id="err"></div><div id="loading">Đang tải...</div><div class="card-body"><table id="ug-tbl" style="display:none"><thead><tr><th>ID</th><th>名称</th><th>用户数</th><th>排序</th><th>操作</th></tr></thead><tbody id="ug-tbody"></tbody></table></div></div>';
+        loadUg();
+      }
+      function loadUg() {
+        var lm = g("loading"),
+          tbl = g("ug-tbl"),
+          er = g("err");
+        if (lm) lm.style.display = "block";
+        if (tbl) tbl.style.display = "none";
+        if (er) er.style.display = "none";
+        api(API + "/admin/usergroup")
+          .then(function (d) {
+            ugData = d.data || [];
+            var rows = "";
+            ugData.forEach(function (g) {
+              rows +=
+                "<tr><td>" +
+                g.id +
+                "</td><td><strong>" +
+                esc(g.name) +
+                "</strong></td><td>" +
+                (g.user_count || 0) +
+                "</td><td>" +
+                (g.show_order || 0) +
+                '</td><td style="white-space:nowrap"><button class="btn" onclick="openUgModal(' +
+                g.id +
+                ')">Sửa</button> <button class="btn btn-danger" onclick="delUg(' +
+                g.id +
+                ')">Xóa</button></td></tr>';
+            });
+            g("ug-tbody").innerHTML = rows;
+            if (tbl) tbl.style.display = "";
+            if (lm) lm.style.display = "none";
+          })
+          .catch(function (e) {
+            pe(e.message);
+            if (lm) lm.style.display = "none";
+          });
+      }
+      function openUgModal(id) {
+        var d = id
+          ? ugData.find(function (x) {
+              return x.id === id;
+            })
+          : null;
+        var h = "<h3>" + (d ? "Sửa: " + esc(d.name) : "创建用户组") + "</h3>";
+        h +=
+          '<div class="f-grp"><label>名称 *</label><input id="f_ug_name" value="' +
+          (d ? esc(d.name) : "") +
+          '"></div>';
+        h +=
+          '<div class="f-grp"><label>排序</label><input id="f_ug_order" type="number" value="' +
+          (d ? d.show_order || 0 : 0) +
+          '"></div>';
+        h +=
+          '<div class="modal-actions"><button class="btn" onclick="closeModal()">Hủy</button> <button class="btn btn-primary" onclick="submitUg(' +
+          (id || 0) +
+          ')">' +
+          (d ? "Cập nhật" : "Tạo") +
+          "</button></div>";
+        g("modalBody").innerHTML = h;
+        g("modalOverlay").style.display = "flex";
+      }
+      function submitUg(id) {
+        var data = {
+          name: g("f_ug_name").value,
+          show_order: parseInt(g("f_ug_order").value) || 0,
+        };
+        if (!data.name) {
+          pe("Vui lòng nhập tên");
+          return;
+        }
+        var p = id
+          ? apiPost(API + "/admin/usergroup/" + id, data)
+          : apiPut(API + "/admin/usergroup", data);
+        p.then(function () {
+          closeModal();
+          loadUg();
+        }).catch(function (e) {
+          pe(e.message);
+        });
+      }
+      function delUg(id) {
+        if (!confirm("Xác nhận xóa user group #" + id + "?")) return;
+        apiDel(API + "/admin/usergroup", { ids: [id] })
+          .then(function () {
+            loadUg();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+
+      // ========== DG CACHE (dung chung) ==========
+      var dgCache = [],
+        dgCachePromise = null;
+      function loadDgCache() {
+        if (dgCache.length > 0) return Promise.resolve(dgCache);
+        if (dgCachePromise) return dgCachePromise;
+        dgCachePromise = api(API + "/admin/devicegroup").then(function (d) {
+          dgCache = d.data || [];
+          dgCachePromise = null;
+          return dgCache;
+        });
+        return dgCachePromise;
+      }
+      function getGroupName(gid) {
+        var dg = dgCache.find(function (x) {
+          return x.id === gid;
+        });
+        return dg ? dg.name : "GID " + gid;
+      }
+      function getGroupRatio(gid) {
+        var dg = dgCache.find(function (x) {
+          return x.id === gid;
+        });
+        return dg && dg.ratio ? dg.ratio : "0";
+      }
+      function getInInfo(gid, listenPort) {
+        var dg = dgCache.find(function (x) {
+          return x.id === gid;
+        });
+        var name = dg ? dg.name : "GID " + gid;
+        var ratio = dg && dg.ratio ? dg.ratio : "0";
+        return (
+          '<div style="line-height:1.6"><b>入口: ' +
+          esc(name) +
+          '</b><br><span style="color:#999;font-size:11px">倍率 ' +
+          esc(ratio) +
+          '</span><br><span style="color:#666;font-size:11px">端口: ' +
+          listenPort +
+          "</span></div>"
+        );
+      }
+      function getOutInfo(gid, dests) {
+        var dg = dgCache.find(function (x) {
+          return x.id === gid;
+        });
+        var name = dg ? dg.name : "GID " + gid;
+        var ratio = dg && dg.ratio ? dg.ratio : "0";
+        var addr = dests || (dg ? dg.connect_host || "-" : "-");
+        return (
+          '<div style="line-height:1.6"><b>出口: ' +
+          esc(name) +
+          '</b><br><span style="color:#999;font-size:11px">倍率 ' +
+          esc(ratio) +
+          '</span><br><span style="color:#1677ff;font-size:11px">' +
+          esc(addr) +
+          "</span></div>"
+        );
+      }
+      function getDgOptions(selectedId) {
+        var typeLabel = {
+          DeviceGroupType_Inbound: "[入口]",
+          DeviceGroupType_OutboundBySite: "[出口]",
+          DeviceGroupType_OutboundByUser: "[单端出口]",
+          DeviceGroupType_AgentOnly: "[仅监控]",
+          DeviceGroupType_ChainOutbound: "[链式出口]",
+        };
+        if (dgCache.length === 0)
+          return '<option value="">Dang tai...</option>';
+        var opts = '<option value="">-- Chon --</option>';
+        dgCache.forEach(function (dg) {
+          var t = typeLabel[dg.type] || "";
+          opts +=
+            '<option value="' +
+            dg.id +
+            '"' +
+            (dg.id === selectedId ? " selected" : "") +
+            ">" +
+            t +
+            " " +
+            dg.name +
+            "</option>";
+        });
+        return opts;
+      }
+      // Lọc chỉ Inbound groups cho dropdown 入口
+      function getDgInOptions(selectedId) {
+        var typeLabel = { DeviceGroupType_Inbound: "[入口]" };
+        if (dgCache.length === 0)
+          return '<option value="">Dang tai...</option>';
+        var opts = '<option value="">-- Chon --</option>';
+        dgCache.forEach(function (dg) {
+          if (dg.type !== "DeviceGroupType_Inbound") return;
+          var t = typeLabel[dg.type] || "";
+          opts +=
+            '<option value="' +
+            dg.id +
+            '"' +
+            (dg.id === selectedId ? " selected" : "") +
+            ">" +
+            t +
+            " " +
+            dg.name +
+            "</option>";
+        });
+        return opts;
+      }
+      // Lọc chỉ Outbound groups cho dropdown 出口
+      function getDgOutOptions(selectedId) {
+        var typeLabel = {
+          DeviceGroupType_OutboundBySite: "[出口]",
+          DeviceGroupType_OutboundByUser: "[单端出口]",
+          DeviceGroupType_ChainOutbound: "[链式出口]",
+        };
+        if (dgCache.length === 0)
+          return '<option value="">Dang tai...</option>';
+        var opts = '<option value="">-- Chon --</option>';
+        dgCache.forEach(function (dg) {
+          if (
+            dg.type === "DeviceGroupType_Inbound" ||
+            dg.type === "DeviceGroupType_AgentOnly"
+          )
+            return;
+          var t = typeLabel[dg.type] || "";
+          opts +=
+            '<option value="' +
+            dg.id +
+            '"' +
+            (dg.id === selectedId ? " selected" : "") +
+            ">" +
+            t +
+            " " +
+            dg.name +
+            "</option>";
+        });
+        return opts;
+      }
+
+      // ========== FORWARD RULES PAGE ==========
+      var frData = [],
+        frSelected = new Set(),
+        frSearchTerm = "",
+        frAdvOpen = false;
+      var frFilterName = "",
+        frFilterPort = "",
+        frFilterIn = "",
+        frFilterOut = "";
+      function renderFrPage() {
+        g("page-content").innerHTML =
+          '<div class="card" style="margin-bottom:16px"><div class="card-header"><h2>我的转发规则</h2></div>' +
+          '<div style="display:flex;gap:16px;padding:16px 20px;flex-wrap:wrap" id="fr-stats">' +
+          '<div style="flex:1;min-width:140px;background:#f6f8fa;border:1px solid #e8e8e8;border-radius:10px;padding:14px 16px"><div style="font-size:12px;color:#888">总流量</div><div style="font-size:20px;font-weight:700;color:#333" id="fr-total-traffic">-</div><div style="font-size:11px;color:#aaa">今日 / 昨日</div></div>' +
+          '<div style="flex:1;min-width:140px;background:#f6f8fa;border:1px solid #e8e8e8;border-radius:10px;padding:14px 16px"><div style="font-size:12px;color:#888">规则数</div><div style="font-size:20px;font-weight:700;color:#333" id="fr-total-rules">-</div><div style="font-size:11px;color:#aaa">个规则</div></div>' +
+          '<div style="flex:1;min-width:140px;background:#f6f8fa;border:1px solid #e8e8e8;border-radius:10px;padding:14px 16px"><div style="font-size:12px;color:#888">活跃端口</div><div style="font-size:20px;font-weight:700;color:#333" id="fr-active-ports">-</div><div style="font-size:11px;color:#aaa">个端口使用中</div></div>' +
+          "</div>" +
+          '<div style="display:flex;align-items:center;padding:10px 20px;gap:8px;flex-wrap:wrap;border-bottom:1px solid #f0f0f0">' +
+          '<div style="display:flex;align-items:center;gap:8px;flex:1;min-width:280px">' +
+          '<div style="position:relative;flex:1;max-width:360px">' +
+          '<input type="text" id="fr-search" placeholder="搜索规则" style="width:100%;border:1px solid #d9d9d9;border-radius:6px;padding:6px 30px 6px 10px;font-size:13px;outline:none" oninput="frQuickSearch()" onkeydown="if(event.key===\'Enter\')frQuickSearch()">' +
+          '<span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:12px;user-select:none" onclick="toggleFrSearchAdv()" id="fr-search-adv-btn">▾</span>' +
+          "</div>" +
+          '<a href="javascript:frResetSearch()" style="font-size:12px;color:#1677ff;white-space:nowrap;text-decoration:none">返回所有规则</a>' +
+          "</div>" +
+          '<button class="btn" onclick="loadFr()">↻ 刷新</button>' +
+          '<button class="btn" onclick="openFrFolderModal()">📁 管理分组</button>' +
+          "</div>" +
+          '<div id="fr-search-adv" style="display:none;padding:10px 20px 12px;border-bottom:1px solid #f0f0f0;background:#fafafa">' +
+          '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">' +
+          '<div style="flex:1;min-width:140px"><label style="font-size:11px;color:#888;display:block;margin-bottom:2px">规则名称 (模糊)</label><input id="fr-s-name" style="width:100%;padding:5px 8px;font-size:12px;border:1px solid #d9d9d9;border-radius:4px" oninput="frAdvSearchUpdate()"></div>' +
+          '<div style="flex:1;min-width:120px"><label style="font-size:11px;color:#888;display:block;margin-bottom:2px">监听端口 (精确)</label><input id="fr-s-port" type="number" style="width:100%;padding:5px 8px;font-size:12px;border:1px solid #d9d9d9;border-radius:4px" oninput="frAdvSearchUpdate()"></div>' +
+          '<div style="flex:1;min-width:140px"><label style="font-size:11px;color:#888;display:block;margin-bottom:2px">入口组</label><select id="fr-s-in" style="width:100%;padding:5px 8px;font-size:12px;border:1px solid #d9d9d9;border-radius:4px" onchange="frAdvSearchUpdate()"><option value="">全部</option>' +
+          getDgInOptions(0) +
+          "</select></div>" +
+          '<div style="flex:1;min-width:140px"><label style="font-size:11px;color:#888;display:block;margin-bottom:2px">出口组</label><select id="fr-s-out" style="width:100%;padding:5px 8px;font-size:12px;border:1px solid #d9d9d9;border-radius:4px" onchange="frAdvSearchUpdate()"><option value="">全部</option>' +
+          getDgOutOptions(0) +
+          "</select></div>" +
+          '<div style="display:flex;gap:4px"><button class="btn" style="font-size:12px;padding:5px 12px" onclick="frResetSearch()">重置</button><button class="btn btn-primary" style="font-size:12px;padding:5px 12px" onclick="frSearch()">搜索</button></div>' +
+          "</div></div>" +
+          '<div style="display:flex;gap:4px;padding:8px 20px;border-bottom:1px solid #f0f0f0">' +
+          '<span style="padding:6px 16px;border-radius:20px;font-size:12px;background:#1677ff;color:#fff;cursor:pointer" onclick="frSetFilter(this,\'all\')">全部</span>' +
+          '<span style="padding:6px 16px;border-radius:20px;font-size:12px;color:#666;cursor:pointer" onclick="frSetFilter(this,\'unclassified\')">未分组</span>' +
+          "</div>" +
+          '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:8px;flex-wrap:wrap">' +
+          '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
+          '<button class="btn btn-primary" onclick="openFrModal()">+ 添加规则</button>' +
+          '<button class="btn" onclick="frBatchImport()">📥 批量导入</button>' +
+          '<button class="btn" onclick="frBatchExport()">📤 批量导出</button>' +
+          '<button class="btn" onclick="frBatchToggle()">🔄 批量切换</button>' +
+          "</div>" +
+          '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
+          '<span id="fr-sel-info" style="font-size:12px;color:#1677ff;display:none">已选 <b id="fr-sel-count">0</b> 项</span>' +
+          '<button class="btn btn-danger" onclick="frBatchResetTraffic()" id="fr-btn-cleartraffic" disabled>清空流量</button>' +
+          '<button class="btn btn-danger" onclick="frBatchDelete()" id="fr-btn-delete" disabled>删除选中</button>' +
+          "</div>" +
+          "</div>" +
+          '<div id="err"></div><div id="loading">Dang tai...</div>' +
+          '<div style="overflow-x:auto"><table id="fr-tbl" style="display:none"><thead><tr>' +
+          '<th style="width:30px"><input type="checkbox" onchange="frToggleAll(this)" id="fr-check-all"></th>' +
+          "<th>ID</th><th>名称</th><th>入口</th><th>出口</th><th>流量</th><th>状态</th><th>操作</th>" +
+          '</tr></thead><tbody id="fr-tbody"></tbody></table></div>' +
+          '<div style="display:flex;justify-content:space-between;padding:12px 20px;font-size:12px;color:#888">' +
+          '<span></span><span>共 <b id="fr-total-count">0</b> 条规则</span></div></div>';
+        loadFr();
+      }
+      function loadFr() {
+        var lm = g("loading"),
+          tbl = g("fr-tbl"),
+          er = g("err");
+        if (lm) lm.style.display = "block";
+        if (tbl) tbl.style.display = "none";
+        if (er) er.style.display = "none";
+        loadDgCache()
+          .then(function () {
+            updateFrSearchSelects();
+            return api(API + "/admin/forward");
+          })
+          .then(function (d) {
+            frData = d.data || [];
+            frSelected.clear();
+            renderFrTable();
+            updateFrStats();
+            if (lm) lm.style.display = "none";
+            if (tbl) tbl.style.display = "";
+            if (g("fr-check-all")) g("fr-check-all").checked = false;
+          })
+          .catch(function (e) {
+            pe(e.message);
+            if (lm) lm.style.display = "none";
+          });
+      }
+      function renderFrTable() {
+        var filtered = frData;
+        // Apply all filters
+        if (frFilterName) {
+          var fn = frFilterName.toLowerCase();
+          filtered = filtered.filter(function (r) {
+            return (r.name || "").toLowerCase().includes(fn);
+          });
+        }
+        if (frFilterPort) {
+          var fp = parseInt(frFilterPort);
+          filtered = filtered.filter(function (r) {
+            return r.listen_port === fp;
+          });
+        }
+        if (frFilterIn) {
+          var fi = parseInt(frFilterIn);
+          filtered = filtered.filter(function (r) {
+            return r.device_group_in === fi;
+          });
+        }
+        if (frFilterOut) {
+          var fo = parseInt(frFilterOut);
+          filtered = filtered.filter(function (r) {
+            return r.device_group_out === fo;
+          });
+        }
+        if (frSearchTerm && !frFilterName && !frFilterPort) {
+          var s = frSearchTerm.toLowerCase();
+          filtered = filtered.filter(function (r) {
+            return (
+              (r.name || "").toLowerCase().includes(s) ||
+              String(r.listen_port).includes(s) ||
+              String(r.id).includes(s)
+            );
+          });
+        }
+        g("fr-total-count").textContent = filtered.length;
+        var rows = "";
+        filtered.forEach(function (r) {
+          var cfg = {};
+          try {
+            cfg = JSON.parse(r.config || "{}");
+          } catch (e) {}
+          var dests = (cfg.dest || []).join(", ") || "-";
+          var isSel = frSelected.has(r.id);
+          rows +=
+            "<tr>" +
+            '<td><input type="checkbox" ' +
+            (isSel ? "checked" : "") +
+            ' onchange="frToggleOne(' +
+            r.id +
+            ',this)"></td>' +
+            "<td>" +
+            r.id +
+            "</td>" +
+            "<td><strong>" +
+            esc(r.name) +
+            "</strong>" +
+            (r.paused ? ' <span class="tag t-red">已暂停</span>' : "") +
+            "</td>" +
+            "<td>" +
+            getInInfo(r.device_group_in, r.listen_port) +
+            "</td>" +
+            "<td>" +
+            getOutInfo(r.device_group_out, dests) +
+            "</td>" +
+            "<td>" +
+            fmt(r.traffic_used || 0) +
+            "</td>" +
+            '<td><span class="tag ' +
+            (r.status === "ForwardRuleStatus_Failed" ? "t-red" : "t-green") +
+            '">' +
+            (r.status === "ForwardRuleStatus_Failed" ? "失败" : "正常") +
+            "</span></td>" +
+            '<td style="white-space:nowrap">' +
+            '<button class="btn" onclick="openFrModal(' +
+            r.id +
+            ')">编辑</button> ' +
+            '<button class="btn" onclick="advancedEditFr(' +
+            r.id +
+            ')">⚙ 高级</button> ' +
+            '<button class="btn" onclick="cloneFr(' +
+            r.id +
+            ')">📋</button> ' +
+            '<button class="btn" onclick="togglePause(' +
+            r.id +
+            ')">' +
+            (r.paused ? "▶" : "⏸") +
+            "</button> " +
+            '<button class="btn btn-danger" onclick="delFr(' +
+            r.id +
+            ')">删除</button>' +
+            "</td></tr>";
+        });
+        g("fr-tbody").innerHTML =
+          rows ||
+          '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999">没有匹配的规则</td></tr>';
+        updateFrSelectionUI();
+      }
+      function updateFrStats() {
+        var totalTraffic = frData.reduce(function (s, r) {
+          return s + (r.traffic_used || 0);
+        }, 0);
+        var ports = new Set(
+          frData.map(function (r) {
+            return r.listen_port;
+          }),
+        );
+        if (g("fr-total-traffic"))
+          g("fr-total-traffic").textContent = fmt(totalTraffic);
+        if (g("fr-total-rules"))
+          g("fr-total-rules").textContent = frData.length;
+        if (g("fr-active-ports")) g("fr-active-ports").textContent = ports.size;
+      }
+      function updateFrSelectionUI() {
+        var cnt = frSelected.size;
+        if (g("fr-sel-count")) g("fr-sel-count").textContent = cnt;
+        if (g("fr-sel-info"))
+          g("fr-sel-info").style.display = cnt > 0 ? "inline" : "none";
+        if (g("fr-btn-delete")) g("fr-btn-delete").disabled = cnt === 0;
+        if (g("fr-btn-cleartraffic"))
+          g("fr-btn-cleartraffic").disabled = cnt === 0;
+      }
+      function frToggleAll(cb) {
+        frData.forEach(function (r) {
+          if (cb.checked) frSelected.add(r.id);
+          else frSelected.delete(r.id);
+        });
+        renderFrTable();
+      }
+      function frToggleOne(id, cb) {
+        if (cb.checked) frSelected.add(id);
+        else frSelected.delete(id);
+        updateFrSelectionUI();
+      }
+      function frSetFilter(el, f) {
+        var pills = el.parentElement.querySelectorAll("span");
+        pills.forEach(function (p) {
+          p.style.background = "";
+          p.style.color = "#666";
+        });
+        el.style.background = "#1677ff";
+        el.style.color = "#fff";
+        // Clear all filters
+        frSearchTerm = "";
+        frFilterName = "";
+        frFilterPort = "";
+        frFilterIn = "";
+        frFilterOut = "";
+        if (g("fr-search")) g("fr-search").value = "";
+        if (g("fr-s-name")) g("fr-s-name").value = "";
+        if (g("fr-s-port")) g("fr-s-port").value = "";
+        if (g("fr-s-in")) g("fr-s-in").value = "";
+        if (g("fr-s-out")) g("fr-s-out").value = "";
+        renderFrTable();
+      }
+      function frSearch() {
+        // Collect quick search term
+        frSearchTerm = g("fr-search") ? g("fr-search").value : "";
+        // Collect advanced filters
+        frFilterName = g("fr-s-name") ? g("fr-s-name").value : "";
+        frFilterPort = g("fr-s-port") ? g("fr-s-port").value : "";
+        frFilterIn = g("fr-s-in") ? g("fr-s-in").value : "";
+        frFilterOut = g("fr-s-out") ? g("fr-s-out").value : "";
+        renderFrTable();
+      }
+      function frQuickSearch() {
+        frSearchTerm = g("fr-search") ? g("fr-search").value : "";
+        renderFrTable();
+      }
+      function toggleFrSearchAdv() {
+        frAdvOpen = !frAdvOpen;
+        var panel = g("fr-search-adv");
+        if (panel) panel.style.display = frAdvOpen ? "block" : "none";
+        var btn = g("fr-search-adv-btn");
+        if (btn) btn.textContent = frAdvOpen ? "▴" : "▾";
+      }
+      function frAdvSearchUpdate() {
+        frFilterName = g("fr-s-name") ? g("fr-s-name").value : "";
+        frFilterPort = g("fr-s-port") ? g("fr-s-port").value : "";
+        frFilterIn = g("fr-s-in") ? g("fr-s-in").value : "";
+        frFilterOut = g("fr-s-out") ? g("fr-s-out").value : "";
+      }
+      function frResetSearch() {
+        frSearchTerm = "";
+        frFilterName = "";
+        frFilterPort = "";
+        frFilterIn = "";
+        frFilterOut = "";
+        if (g("fr-search")) g("fr-search").value = "";
+        if (g("fr-s-name")) g("fr-s-name").value = "";
+        if (g("fr-s-port")) g("fr-s-port").value = "";
+        if (g("fr-s-in")) g("fr-s-in").value = "";
+        if (g("fr-s-out")) g("fr-s-out").value = "";
+        renderFrTable();
+      }
+      function updateFrSearchSelects() {
+        var inSel = g("fr-s-in"),
+          outSel = g("fr-s-out");
+        if (!inSel && !outSel) return;
+        var typeLabel = {
+          DeviceGroupType_Inbound: "[入口]",
+          DeviceGroupType_OutboundBySite: "[出口]",
+          DeviceGroupType_OutboundByUser: "[单端出口]",
+          DeviceGroupType_AgentOnly: "[仅监控]",
+          DeviceGroupType_ChainOutbound: "[链式出口]",
+        };
+        var inOpts = '<option value="">全部</option>',
+          outOpts = '<option value="">全部</option>';
+        dgCache.forEach(function (dg) {
+          var t = typeLabel[dg.type] || "";
+          var opt =
+            '<option value="' + dg.id + '">' + t + " " + dg.name + "</option>";
+          if (dg.type === "DeviceGroupType_Inbound") inOpts += opt;
+          else outOpts += opt;
+        });
+        if (inSel) inSel.innerHTML = inOpts;
+        if (outSel) outSel.innerHTML = outOpts;
+      }
+      function frBatchDelete() {
+        if (frSelected.size === 0) return;
+        if (!confirm("Xoa " + frSelected.size + " rule da chon?")) return;
+        apiDel(API + "/admin/forward", { ids: Array.from(frSelected) })
+          .then(function () {
+            loadFr();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function frBatchResetTraffic() {
+        if (frSelected.size === 0) return;
+        if (!confirm("Reset traffic " + frSelected.size + " rule?")) return;
+        apiPost(API + "/admin/forward/reset_traffic", {
+          ids: Array.from(frSelected),
+        })
+          .then(function () {
+            loadFr();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      // ========== BATCH IMPORT MODAL ==========
+      function frBatchImport() {
+        var h = "<h3>批量导入规则</h3>";
+        h +=
+          '<div style="margin-bottom:8px;font-size:12px;color:#888">每行一个规则，格式: 名称,端口,入口GID,出口GID,目标地址</div>';
+        h +=
+          '<div class="f-grp"><textarea id="f_bi_text" rows="10" style="font-family:monospace;font-size:12px" placeholder="VIETNAM-HN1|LC1,19001,20,22,vngoc.hn.scdh2268.com:2900"></textarea></div>';
+        h +=
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" id="f_bi_json"><label style="margin:0;cursor:pointer;font-size:13px">Dung dinh dang JSON</label></div>';
+        h +=
+          '<div class="modal-actions"><button class="btn" onclick="closeModal()">Huy</button> <button class="btn btn-primary" onclick="submitBatchImport()">导入</button></div>';
+        g("modalBody").innerHTML = h;
+        g("modalOverlay").style.display = "flex";
+      }
+      function submitBatchImport() {
+        var raw = g("f_bi_text").value.trim();
+        if (!raw) {
+          pe("Vui long nhap du lieu");
+          return;
+        }
+        var isJson = g("f_bi_json").checked;
+        var rules = [];
+        if (isJson) {
+          try {
+            rules = JSON.parse(raw);
+            if (!Array.isArray(rules)) throw new Error("Phai la mang JSON");
+          } catch (e) {
+            pe("JSON khong hop le: " + e.message);
+            return;
+          }
+        } else {
+          var lines = raw.split("\n").filter(function (l) {
+            return l.trim();
+          });
+          lines.forEach(function (line) {
+            var parts = line.split(",");
+            if (parts.length >= 5) {
+              var dests = parts
+                .slice(4)
+                .join(",")
+                .split(";")
+                .filter(function (d) {
+                  return d.trim();
+                });
+              rules.push({
+                name: parts[0].trim(),
+                listen_port: parseInt(parts[1]) || 0,
+                device_group_in: parseInt(parts[2]) || 0,
+                device_group_out: parseInt(parts[3]) || 0,
+                config: JSON.stringify({ dest: dests }),
+                status: "ForwardRuleStatus_Normal",
+              });
+            }
+          });
+        }
+        if (rules.length === 0) {
+          pe("Khong co rule hop le");
+          return;
+        }
+        var done = 0,
+          total = rules.length;
+        rules.forEach(function (r) {
+          apiPut(API + "/admin/forward", r)
+            .then(function () {
+              done++;
+              if (done === total) {
+                closeModal();
+                loadFr();
+              }
+            })
+            .catch(function (e) {
+              done++;
+              if (done === total) {
+                closeModal();
+                loadFr();
+              }
+              pe(e.message);
+            });
+        });
+      }
+
+      // ========== BATCH EXPORT MODAL ==========
+      function frBatchExport() {
+        var ids =
+          frSelected.size > 0
+            ? Array.from(frSelected)
+            : frData.map(function (r) {
+                return r.id;
+              });
+        var data = frData.filter(function (r) {
+          return ids.includes(r.id);
+        });
+        var jsonStr = JSON.stringify(data, null, 2);
+        var csvLines = [
+          "id,name,listen_port,device_group_in,device_group_out,traffic_used,status",
+        ];
+        data.forEach(function (r) {
+          var cfg = {};
+          try {
+            cfg = JSON.parse(r.config || "{}");
+          } catch (e) {}
+          var dests = (cfg.dest || []).join(";");
+          csvLines.push(
+            [
+              r.id,
+              '"' + (r.name || "") + '"',
+              r.listen_port,
+              r.device_group_in,
+              r.device_group_out,
+              r.traffic_used,
+              r.status,
+            ].join(","),
+          );
+        });
+        var csvStr = csvLines.join("\n");
+        var h = "<h3>批量导出规则</h3>";
+        h +=
+          '<div style="margin-bottom:8px;font-size:12px;color:#888">Da chon <b>' +
+          data.length +
+          "</b> rule</div>";
+        h +=
+          '<div class="f-grp"><label>JSON</label><textarea id="f_be_json" rows="8" style="font-family:monospace;font-size:11px" readonly>' +
+          esc(jsonStr) +
+          "</textarea></div>";
+        h +=
+          '<div class="f-grp"><label>CSV</label><textarea id="f_be_csv" rows="8" style="font-family:monospace;font-size:11px" readonly>' +
+          esc(csvStr) +
+          "</textarea></div>";
+        h +=
+          '<div class="modal-actions"><button class="btn" onclick="closeModal()">Dong</button> <button class="btn btn-primary" onclick="copyExport()">📋 Copy JSON</button></div>';
+        g("modalBody").innerHTML = h;
+        g("modalOverlay").style.display = "flex";
+      }
+      function copyExport() {
+        var ta = g("f_be_json");
+        if (!ta) return;
+        ta.select();
+        document.execCommand("copy");
+        alert("Da copy JSON vao clipboard!");
+      }
+
+      // ========== BATCH TOGGLE MODAL ==========
+      function frBatchToggle() {
+        if (frSelected.size === 0) {
+          pe("Vui long chon it nhat 1 rule");
+          return;
+        }
+        var h = "<h3>批量切换规则</h3>";
+        h +=
+          '<div style="margin-bottom:8px;font-size:12px;color:#888">Da chon <b>' +
+          frSelected.size +
+          "</b> rule</div>";
+        h +=
+          '<div class="f-grp"><label>Hanh dong</label><select id="f_bt_action"><option value="pause">Tam dung</option><option value="resume">Tiep tuc</option></select></div>';
+        if (dgCache.length === 0) loadDgCache();
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>入口设备组 (de trong neu khong doi)</label><select id="f_bt_in"><option value="">-- Khong doi --</option>' +
+          getDgInOptions(0) +
+          "</select></div>";
+        h +=
+          '<div class="f-grp"><label>出口设备组 (de trong neu khong doi)</label><select id="f_bt_out"><option value="">-- Khong doi --</option>' +
+          getDgOutOptions(0) +
+          "</select></div></div>";
+        h +=
+          '<div class="modal-actions"><button class="btn" onclick="closeModal()">Huy</button> <button class="btn btn-primary" onclick="submitBatchToggle()">Ap dung</button></div>';
+        g("modalBody").innerHTML = h;
+        g("modalOverlay").style.display = "flex";
+      }
+      function submitBatchToggle() {
+        var action = g("f_bt_action").value;
+        var inGid = parseInt(g("f_bt_in").value) || 0;
+        var outGid = parseInt(g("f_bt_out").value) || 0;
+        var paused = action === "pause";
+        var ids = Array.from(frSelected);
+        var done = 0;
+        ids.forEach(function (id) {
+          var data = {};
+          if (action === "pause" || action === "resume") data.paused = paused;
+          if (inGid) data.device_group_in = inGid;
+          if (outGid) data.device_group_out = outGid;
+          apiPost(API + "/admin/forward/" + id, data)
+            .then(function () {
+              done++;
+              if (done === ids.length) {
+                closeModal();
+                loadFr();
+              }
+            })
+            .catch(function () {
+              done++;
+              if (done === ids.length) {
+                closeModal();
+                loadFr();
+              }
+            });
+        });
+      }
+      function openFrModal(id) {
+        if (dgCache.length === 0) loadDgCache();
+        var d = id
+          ? frData.find(function (x) {
+              return x.id === id;
+            })
+          : null;
+        var cfg = {};
+        if (d)
+          try {
+            cfg = JSON.parse(d.config || "{}");
+          } catch (e) {}
+        var dests = (cfg.dest || []).join("\n");
+        var h =
+          "<h3>" +
+          (d ? "编辑规则 #" + d.id + " — " + esc(d.name) : "添加规则") +
+          "</h3>";
+        // Connection info - hien thi protocol cua outbound group khi sua rule
+        if (d) {
+          h +=
+            '<div style="background:#f6f8fa;border:1px solid #e8e8e8;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px" id="fr-conn-info">';
+          h += "<b>连接信息</b> ";
+          h +=
+            '<span id="fr-conn-detail" style="color:#666">Dang tai...</span>';
+          h += "</div>";
+        }
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>名称 *</label><input id="f_fr_name" value="' +
+          (d ? esc(d.name) : "") +
+          '"></div><div class="f-grp"><label>监听端口 *</label><input id="f_fr_port" type="number" value="' +
+          (d ? d.listen_port || "" : "") +
+          '"></div></div>';
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>入口设备组</label><select id="f_fr_in">' +
+          getDgInOptions(d ? d.device_group_in : 0) +
+          "</select></div>";
+        h +=
+          '<div class="f-grp"><label>出口设备组</label><select id="f_fr_out">' +
+          getDgOutOptions(d ? d.device_group_out : 0) +
+          "</select></div></div>";
+        // 目标地址 - luon hien thi, khong nam trong高级选项
+        h +=
+          '<div class="f-grp"><label>目标地址 (每行一个 host:port)</label><textarea id="f_fr_dest" rows="3" placeholder="192.168.1.1:80">' +
+          dests +
+          "</textarea></div>";
+        // 高级选项 toggle
+        h +=
+          '<div class="f-section" style="cursor:pointer" onclick="toggleAdvanced()"><span id="f_adv_arrow">▶</span> <b>高级选项</b></div>';
+        h += '<div id="f_adv_section" style="display:none">';
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>负载均衡策略</label><select id="f_fr_policy"><option value=""' +
+          (!cfg.dest_policy ? " selected" : "") +
+          '>默认</option><option value="random"' +
+          (cfg.dest_policy === "random" ? " selected" : "") +
+          '>随机</option><option value="round_robin"' +
+          (cfg.dest_policy === "round_robin" ? " selected" : "") +
+          '>轮询</option><option value="ip_hash"' +
+          (cfg.dest_policy === "ip_hash" ? " selected" : "") +
+          '>ip_hash</option><option value="least_connections"' +
+          (cfg.dest_policy === "least_connections" ? " selected" : "") +
+          '>最小连接数</option><option value="failover"' +
+          (cfg.dest_policy === "failover" ? " selected" : "") +
+          ">故障转移</option></select></div></div>";
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>接受 Proxy Protocol</label><select id="f_fr_accept_proxy"><option value="0"' +
+          (!cfg.accept_proxy_protocol ? " selected" : "") +
+          '>关闭</option><option value="1"' +
+          (cfg.accept_proxy_protocol === 1 ? " selected" : "") +
+          ">打开</option></select></div>";
+        h +=
+          '<div class="f-grp"><label>发送 Proxy Protocol</label><select id="f_fr_send_proxy"><option value="0"' +
+          (!cfg.proxy_protocol ? " selected" : "") +
+          '>关闭</option><option value="1"' +
+          (cfg.proxy_protocol === 1 ? " selected" : "") +
+          '>v1 (TCP)</option><option value="2"' +
+          (cfg.proxy_protocol === 2 ? " selected" : "") +
+          '>v2 (TCP+UDP)</option><option value="3"' +
+          (cfg.proxy_protocol === 3 ? " selected" : "") +
+          ">v2 (TCP)</option></select></div></div>";
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>速度限制 (KB/s, 0=不限制)</label><input id="f_fr_speed" type="number" value="' +
+          (cfg.speed_limit || 0) +
+          '"></div>';
+        h +=
+          '<div class="f-grp"><label>IP限制 (0=不限制)</label><input id="f_fr_iplimit" type="number" value="' +
+          (cfg.ip_limit || 0) +
+          '"></div></div>';
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>连接限制 (0=不限制)</label><input id="f_fr_connlimit" type="number" value="' +
+          (cfg.connection_limit || 0) +
+          '"></div><div class="f-grp"><label>备注</label><input id="f_fr_note" value="' +
+          (d ? esc(d.note || "") : "") +
+          '"></div></div>';
+        h += "</div>";
+        h +=
+          '<div class="modal-actions"><button class="btn" onclick="closeModal()">Huy</button> <button class="btn btn-primary" onclick="submitFr(' +
+          (id || 0) +
+          ')">' +
+          (d ? "Cap nhat" : "Tao") +
+          "</button></div>";
+        g("modalBody").innerHTML = h;
+        g("modalOverlay").style.display = "flex";
+        window._advOpen = false;
+        // Load node info for connection status khi sua rule
+        if (d) loadFrConnInfo(d.id, d.device_group_in, d.device_group_out);
+      }
+      function toggleAdvanced() {
+        window._advOpen = !window._advOpen;
+        g("f_adv_section").style.display = window._advOpen ? "block" : "none";
+        g("f_adv_arrow").textContent = window._advOpen ? "▼" : "▶";
+      }
+      function loadFrConnInfo(rid, dgIn, dgOut) {
+        // Hien thi protocol va thong tin ket noi tu device group config
+        var detailEl = g("fr-conn-detail");
+        if (!detailEl) return;
+        loadDgCache()
+          .then(function () {
+            var dgOutGroup = dgCache.find(function (x) {
+              return x.id === dgOut;
+            });
+            var dgInGroup = dgCache.find(function (x) {
+              return x.id === dgIn;
+            });
+            var parts = [];
+            // Protocol info from outbound group
+            if (dgOutGroup) {
+              var cfg = {};
+              try {
+                cfg = JSON.parse(dgOutGroup.config || "{}");
+              } catch (e) {}
+              var proto = cfg.protocol || cfg.display_protocol || "";
+              if (proto === "tls" || proto === "tls_simple")
+                parts.push('<span style="color:#1677ff">协议: TLS 隧道</span>');
+              else if (proto === "ws")
+                parts.push('<span style="color:#1677ff">协议: WS 隧道</span>');
+              else if (proto === "http")
+                parts.push(
+                  '<span style="color:#1677ff">协议: HTTP 隧道</span>',
+                );
+              else if (proto)
+                parts.push(
+                  '<span style="color:#1677ff">协议: ' + esc(proto) + "</span>",
+                );
+              // Delay optimization
+              if (cfg.delay_optimization || dgOutGroup.delay_optimization)
+                parts.push('<span style="color:#52c41a">延迟优化: 开启</span>');
+              // Proxy protocol
+              if (cfg.accept_proxy_protocol === 1)
+                parts.push("<span>接受 Proxy Protocol</span>");
+              if (cfg.proxy_protocol === 1)
+                parts.push("<span>发送 Proxy v1 (TCP)</span>");
+              else if (cfg.proxy_protocol === 2)
+                parts.push("<span>发送 Proxy v2 (TCP+UDP)</span>");
+              else if (cfg.proxy_protocol === 3)
+                parts.push("<span>发送 Proxy v2 (TCP)</span>");
+              // Ratio info
+              if (dgOutGroup.ratio && dgOutGroup.ratio !== "0")
+                parts.push("<span>倍率: " + esc(dgOutGroup.ratio) + "</span>");
+              // Connect host
+              if (dgOutGroup.connect_host)
+                parts.push(
+                  '<span style="color:#999">出口: ' +
+                    esc(dgOutGroup.name) +
+                    " → " +
+                    esc(dgOutGroup.connect_host) +
+                    "</span>",
+                );
+            }
+            if (dgInGroup) {
+              if (dgInGroup.ratio && dgInGroup.ratio !== "0")
+                parts.push(
+                  "<span>入口倍率: " + esc(dgInGroup.ratio) + "</span>",
+                );
+              if (dgInGroup.port_range)
+                parts.push(
+                  '<span style="color:#999">入口: ' +
+                    esc(dgInGroup.name) +
+                    " (" +
+                    esc(dgInGroup.port_range) +
+                    ")</span>",
+                );
+            }
+            if (parts.length === 0)
+              parts.push('<span style="color:#999">暂无连接信息</span>');
+            detailEl.innerHTML = parts.join(" | ");
+            // Also load node status
+            return api(API + "/system/node/status");
+          })
+          .then(function (nd) {
+            var nodes = nd && nd.data ? nd.data : [];
+            var inNodes = nodes.filter(function (n) {
+              return n.device_group_id === dgIn || n.gid === dgIn;
+            });
+            var outNodes = nodes.filter(function (n) {
+              return n.device_group_id === dgOut || n.gid === dgOut;
+            });
+            var extra = [];
+            if (inNodes.length > 0) {
+              var statuses = inNodes.map(function (n) {
+                return (
+                  '<span style="color:' +
+                  (n.online ? "#52c41a" : "#ff4d4f") +
+                  '">● ' +
+                  esc(n.handle || n.name || "?") +
+                  "</span>"
+                );
+              });
+              extra.push("入口节点: " + statuses.join(" "));
+            }
+            if (outNodes.length > 0) {
+              var statuses2 = outNodes.map(function (n) {
+                return (
+                  '<span style="color:' +
+                  (n.online ? "#52c41a" : "#ff4d4f") +
+                  '">● ' +
+                  esc(n.handle || n.name || "?") +
+                  "</span>"
+                );
+              });
+              extra.push("出口节点: " + statuses2.join(" "));
+            }
+            if (extra.length > 0) {
+              detailEl.innerHTML += " | " + extra.join(" | ");
+            }
+          })
+          .catch(function () {});
+      }
+      function submitFr(id) {
+        var destRaw = g("f_fr_dest") ? g("f_fr_dest").value : "";
+        var dests = destRaw.split("\n").filter(function (x) {
+          return x.trim();
+        });
+        var cfg = { dest: dests };
+        // Advanced options
+        var policy = g("f_fr_policy").value;
+        if (policy) cfg.dest_policy = policy;
+        var acceptProxy = parseInt(g("f_fr_accept_proxy").value) || 0;
+        if (acceptProxy) cfg.accept_proxy_protocol = acceptProxy;
+        var sendProxy = parseInt(g("f_fr_send_proxy").value) || 0;
+        if (sendProxy) cfg.proxy_protocol = sendProxy;
+        var speed = parseInt(g("f_fr_speed").value) || 0;
+        if (speed) cfg.speed_limit = speed;
+        var ipLimit = parseInt(g("f_fr_iplimit").value) || 0;
+        if (ipLimit) cfg.ip_limit = ipLimit;
+        var connLimit = parseInt(g("f_fr_connlimit").value) || 0;
+        if (connLimit) cfg.connection_limit = connLimit;
+        var data = {
+          name: g("f_fr_name").value,
+          listen_port: parseInt(g("f_fr_port").value) || 0,
+          device_group_in: parseInt(g("f_fr_in").value) || 0,
+          device_group_out: parseInt(g("f_fr_out").value) || 0,
+          config: JSON.stringify(cfg),
+        };
+        var note = g("f_fr_note").value.trim();
+        if (note) data.note = note;
+        if (!data.name || !data.listen_port) {
+          pe("Vui long nhap ten va cong");
+          return;
+        }
+        var p = id
+          ? apiPost(API + "/admin/forward/" + id, data)
+          : apiPut(API + "/admin/forward", data);
+        p.then(function () {
+          closeModal();
+          loadFr();
+        }).catch(function (e) {
+          pe(e.message);
+        });
+      }
+      function delFr(id) {
+        if (!confirm("Xac nhan xoa rule #" + id + "?")) return;
+        apiDel(API + "/admin/forward", { ids: [id] })
+          .then(function () {
+            loadFr();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function togglePause(id) {
+        var r = frData.find(function (x) {
+          return x.id === id;
+        });
+        if (!r) return;
+        apiPost(API + "/admin/forward/" + id, { paused: !r.paused })
+          .then(function () {
+            loadFr();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function cloneFr(id) {
+        var r = frData.find(function (x) {
+          return x.id === id;
+        });
+        if (!r) return;
+        var newName = r.name + " (copy)";
+        var newPort = (r.listen_port || 10000) + 1;
+        var data = {
+          name: newName,
+          listen_port: newPort,
+          device_group_in: r.device_group_in,
+          device_group_out: r.device_group_out,
+          config: r.config,
+          note: r.note,
+          status: "ForwardRuleStatus_Normal",
+        };
+        apiPut(API + "/admin/forward", data)
+          .then(function () {
+            loadFr();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function advancedEditFr(id) {
+        if (dgCache.length === 0) loadDgCache();
+        var r = frData.find(function (x) {
+          return x.id === id;
+        });
+        if (!r) return;
+        var cfg = {};
+        try {
+          cfg = JSON.parse(r.config || "{}");
+        } catch (e) {}
+        var dests = (cfg.dest || []).join("\n");
+        var h = "<h3>高级编辑 #" + r.id + " — " + esc(r.name) + "</h3>";
+        // Connection info - hien thi protocol khi sua rule
+        h +=
+          '<div style="background:#f6f8fa;border:1px solid #e8e8e8;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px">';
+        h += "<b>连接信息</b> ";
+        h += '<span id="fr-conn-detail" style="color:#666">Dang tai...</span>';
+        h += "</div>";
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>名称</label><input id="f_ae_name" value="' +
+          esc(r.name) +
+          '"></div><div class="f-grp"><label>监听端口</label><input id="f_ae_port" type="number" value="' +
+          (r.listen_port || "") +
+          '"></div></div>';
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>入口设备组</label><select id="f_ae_in">' +
+          getDgInOptions(r.device_group_in) +
+          "</select></div>";
+        h +=
+          '<div class="f-grp"><label>出口设备组</label><select id="f_ae_out">' +
+          getDgOutOptions(r.device_group_out) +
+          "</select></div></div>";
+        h += '<div class="f-section"><h4>目标与策略</h4></div>';
+        h +=
+          '<div class="f-grp"><label>目标地址 (每行一个 host:port)</label><textarea id="f_ae_dest" rows="4">' +
+          dests +
+          "</textarea></div>";
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>负载均衡策略</label><select id="f_ae_policy"><option value=""' +
+          (!cfg.dest_policy ? " selected" : "") +
+          '>默认</option><option value="random"' +
+          (cfg.dest_policy === "random" ? " selected" : "") +
+          '>随机</option><option value="round_robin"' +
+          (cfg.dest_policy === "round_robin" ? " selected" : "") +
+          '>轮询</option><option value="ip_hash"' +
+          (cfg.dest_policy === "ip_hash" ? " selected" : "") +
+          '>ip_hash</option><option value="least_connections"' +
+          (cfg.dest_policy === "least_connections" ? " selected" : "") +
+          '>最小连接数</option><option value="failover"' +
+          (cfg.dest_policy === "failover" ? " selected" : "") +
+          ">故障转移</option></select></div></div>";
+        h += '<div class="f-section"><h4>Proxy Protocol</h4></div>';
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>接受 Proxy Protocol</label><select id="f_ae_accept_proxy"><option value="0"' +
+          (!cfg.accept_proxy_protocol ? " selected" : "") +
+          '>关闭</option><option value="1"' +
+          (cfg.accept_proxy_protocol === 1 ? " selected" : "") +
+          ">打开</option></select></div>";
+        h +=
+          '<div class="f-grp"><label>发送 Proxy Protocol</label><select id="f_ae_send_proxy"><option value="0"' +
+          (!cfg.proxy_protocol ? " selected" : "") +
+          '>关闭</option><option value="1"' +
+          (cfg.proxy_protocol === 1 ? " selected" : "") +
+          '>v1 (TCP)</option><option value="2"' +
+          (cfg.proxy_protocol === 2 ? " selected" : "") +
+          '>v2 (TCP+UDP)</option><option value="3"' +
+          (cfg.proxy_protocol === 3 ? " selected" : "") +
+          ">v2 (TCP)</option></select></div></div>";
+        h += '<div class="f-section"><h4>限速与限制</h4></div>';
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>速度限制 (KB/s)</label><input id="f_ae_speed" type="number" value="' +
+          (cfg.speed_limit || 0) +
+          '"></div>';
+        h +=
+          '<div class="f-grp"><label>IP限制</label><input id="f_ae_iplimit" type="number" value="' +
+          (cfg.ip_limit || 0) +
+          '"></div></div>';
+        h +=
+          '<div class="f-row"><div class="f-grp"><label>连接限制</label><input id="f_ae_connlimit" type="number" value="' +
+          (cfg.connection_limit || 0) +
+          '"></div>';
+        h +=
+          '<div class="f-grp"><label>备注</label><input id="f_ae_note" value="' +
+          esc(r.note || "") +
+          '"></div></div>';
+        h +=
+          '<div class="f-grp" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="f_ae_paused"' +
+          (r.paused ? " checked" : "") +
+          '><label style="margin:0;cursor:pointer">暂停此规则</label></div>';
+        h +=
+          '<div class="modal-actions"><button class="btn" onclick="closeModal()">Huy</button> <button class="btn btn-primary" onclick="submitAdvancedEdit(' +
+          id +
+          ')">Cap nhat</button></div>';
+        g("modalBody").innerHTML = h;
+        g("modalOverlay").style.display = "flex";
+        loadFrConnInfo(id, r.device_group_in, r.device_group_out);
+      }
+      function submitAdvancedEdit(id) {
+        var destRaw = g("f_ae_dest") ? g("f_ae_dest").value : "";
+        var dests = destRaw.split("\n").filter(function (x) {
+          return x.trim();
+        });
+        var cfg = { dest: dests };
+        var policy = g("f_ae_policy").value;
+        if (policy) cfg.dest_policy = policy;
+        var acceptProxy = parseInt(g("f_ae_accept_proxy").value) || 0;
+        if (acceptProxy) cfg.accept_proxy_protocol = acceptProxy;
+        var sendProxy = parseInt(g("f_ae_send_proxy").value) || 0;
+        if (sendProxy) cfg.proxy_protocol = sendProxy;
+        var speed = parseInt(g("f_ae_speed").value) || 0;
+        if (speed) cfg.speed_limit = speed;
+        var ipLimit = parseInt(g("f_ae_iplimit").value) || 0;
+        if (ipLimit) cfg.ip_limit = ipLimit;
+        var connLimit = parseInt(g("f_ae_connlimit").value) || 0;
+        if (connLimit) cfg.connection_limit = connLimit;
+        var data = { config: JSON.stringify(cfg) };
+        data.name = g("f_ae_name").value;
+        data.listen_port = parseInt(g("f_ae_port").value) || 0;
+        data.device_group_in = parseInt(g("f_ae_in").value) || 0;
+        data.device_group_out = parseInt(g("f_ae_out").value) || 0;
+        data.paused = g("f_ae_paused").checked;
+        var note = g("f_ae_note").value.trim();
+        if (note) data.note = note;
+        apiPost(API + "/admin/forward/" + id, data)
+          .then(function () {
+            closeModal();
+            loadFr();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function openFrFolderModal() {
+        api(API + "/admin/forward/folder")
+          .then(function (d) {
+            var data = d.data || { folders: [], unclassified_count: 0 };
+            var h =
+              '<h3>管理分组</h3><div class="f-row"><div class="f-grp"><label>Tao thu muc</label><div style="display:flex;gap:4px"><input id="f_fold_name"><button class="btn btn-primary" onclick="createFrFolder()">Tao</button></div></div></div>';
+            h += '<div class="folder-list">';
+            var folds = data.folders || [];
+            if (folds.length === 0)
+              h +=
+                '<div style="text-align:center;color:#999;padding:20px">Chua co thu muc</div>';
+            folds.forEach(function (f) {
+              h +=
+                '<div class="folder-item"><span class="name">' +
+                esc(f.name) +
+                '</span> <button class="btn btn-danger" onclick="delFrFolder(' +
+                f.id +
+                ')">Xoa</button></div>';
+            });
+            h +=
+              '</div><div class="modal-actions"><button class="btn" onclick="closeModal()">Dong</button></div>';
+            g("modalBody").innerHTML = h;
+            g("modalOverlay").style.display = "flex";
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function createFrFolder() {
+        var n = g("f_fold_name").value;
+        if (!n) {
+          pe("Nhap ten");
+          return;
+        }
+        apiPut(API + "/admin/forward/folder", { name: n })
+          .then(function () {
+            openFrFolderModal();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+      function delFrFolder(id) {
+        if (!confirm("Xac nhan xoa?")) return;
+        apiDel(API + "/admin/forward/folder", { ids: [id] })
+          .then(function () {
+            openFrFolderModal();
+          })
+          .catch(function (e) {
+            pe(e.message);
+          });
+      }
+    </script>
+  </body>
+</html>

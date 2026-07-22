@@ -1,0 +1,11 @@
+# Senpass Backend Configuration
+# Copy file này thành config.yml và chỉnh sửa
+
+# Đường dẫn database SQLite
+database-path: sqlite3:///opt/senpass/db/senpass.db
+
+# Listen address (chỉ localhost — Nginx proxy từ bên ngoài)
+listen: 127.0.0.1:18889
+
+# Không dùng field key
+key: ""

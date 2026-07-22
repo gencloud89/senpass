@@ -138,7 +138,18 @@ else
 fi
 
 # ============================================================
-# 6. BUILD BACKEND
+# 6. TẠO CONFIG CHO BACKEND
+# ============================================================
+info "Tao config.yml cho backend..."
+
+cat > "$INSTALL_DIR/config.yml" << CFGEOF
+database-path: sqlite3://$INSTALL_DIR/db/senpass.db
+listen: 127.0.0.1:18889
+key: ""
+CFGEOF
+
+# ============================================================
+# 7. BUILD BACKEND
 # ============================================================
 echo ""
 info "Build backend..."
@@ -155,7 +166,7 @@ ENVEOF
 chmod 644 "$INSTALL_DIR/env.sh"
 
 # ============================================================
-# 7. CẤU HÌNH NGINX
+# 8. CẤU HÌNH NGINX
 # ============================================================
 echo ""
 info "Cau hinh Nginx..."
@@ -203,7 +214,7 @@ nginx -t || error "Cau hinh Nginx loi!"
 systemctl reload nginx
 
 # ============================================================
-# 8. CÀI ĐẶT SSL (Let's Encrypt)
+# 9. CÀI ĐẶT SSL (Let's Encrypt)
 # ============================================================
 echo ""
 info "Cai dat SSL cho $DOMAIN..."
@@ -215,7 +226,7 @@ certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email "$ADMIN_EMAIL
 systemctl reload nginx
 
 # ============================================================
-# 9. CẤU HÌNH FIREWALL
+# 10. CẤU HÌNH FIREWALL
 # ============================================================
 info "Mo port 80, 443..."
 ufw allow 80/tcp
@@ -223,7 +234,7 @@ ufw allow 443/tcp
 ufw --force enable
 
 # ============================================================
-# 10. TẠO SYSTEMD SERVICE
+# 11. TẠO SYSTEMD SERVICE
 # ============================================================
 info "Tao systemd service..."
 
@@ -252,7 +263,7 @@ systemctl enable "$SERVICE_NAME"
 systemctl restart "$SERVICE_NAME"
 
 # ============================================================
-# 11. TRIỂN KHAI FRONTEND
+# 12. TRIỂN KHAI FRONTEND
 # ============================================================
 info "Trien khai frontend..."
 
@@ -263,7 +274,7 @@ chmod 755 "$INSTALL_DIR/frontend" 2>/dev/null || true
 chmod 644 "$INSTALL_DIR/frontend/index.html" 2>/dev/null || true
 
 # ============================================================
-# 12. KIỂM TRA CUỐI CÙNG
+# 13. KIỂM TRA CUỐI CÙNG
 # ============================================================
 sleep 3
 

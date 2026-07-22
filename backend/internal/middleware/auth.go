@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
+
+	"nyanpass-backend/internal/database"
+	"nyanpass-backend/internal/models"
 )
 
 // CORS middleware cho phép cross-origin requests từ frontend
@@ -22,7 +24,7 @@ func CORS() gin.HandlerFunc {
 	}
 }
 
-// AuthRequired kiểm tra token authorization
+// AuthRequired kiểm tra token trong bảng user_logins
 func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
@@ -35,27 +37,54 @@ func AuthRequired() gin.HandlerFunc {
 			return
 		}
 
-		// Token validation đơn giản — trong production cần kiểm tra DB
-		if strings.TrimSpace(token) == "" {
+		var login models.UserLogin
+		if err := database.DB.Where("token = ?", token).First(&login).Error; err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code": 401,
-				"msg":  "Token không hợp lệ",
+				"msg":  "Token không hợp lệ hoặc đã hết hạn",
 			})
 			c.Abort()
 			return
 		}
 
-		// TODO: Validate token từ bảng user_logins
-		// Tạm thời chấp nhận mọi token không rỗng
-
+		// Lưu UID vào context để handlers dùng
+		c.Set("uid", login.UID)
 		c.Next()
 	}
 }
 
-// AdminRequired kiểm tra quyền admin
+// AdminRequired kiểm tra quyền admin từ DB
 func AdminRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Kiểm tra user có admin=true từ DB
+		uid, exists := c.Get("uid")
+		if !exists {
+			c.JSON(http.StatusForbidden, gin.H{
+				"code": 403,
+				"msg":  "Không có quyền truy cập",
+			})
+			c.Abort()
+			return
+		}
+
+		var user models.User
+		if err := database.DB.Where("id = ?", uid).First(&user).Error; err != nil {
+			c.JSON(http.StatusForbidden, gin.H{
+				"code": 403,
+				"msg":  "Người dùng không tồn tại",
+			})
+			c.Abort()
+			return
+		}
+
+		if !user.Admin {
+			c.JSON(http.StatusForbidden, gin.H{
+				"code": 403,
+				"msg":  "Yêu cầu quyền admin",
+			})
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }

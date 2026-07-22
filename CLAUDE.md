@@ -1,9 +1,9 @@
-# CLAUDE.md — Dự Án Nyanpass Mô Phỏng (tfd2.clonod.top)
+# CLAUDE.md — Dự Án Nyanpass Mô Phỏng (DOMAIN_CUA_BAN)
 
 ## Thông Tin Dự Án
 
 - **Mục tiêu:** Mô phỏng hệ thống panel chuyển tiếp cổng (port forwarding) Nyanpass
-- **Domain phát triển:** tfd2.clonod.top
+- **Domain phát triển:** DOMAIN_CUA_BAN
 
 ## Kiến Trúc Hệ Thống Tham Khảo
 
@@ -39,14 +39,14 @@ Inbound Node (JP/SG) → [Tunnel] → Outbound Node (VN) → Đích khách hàng
 - **TUYỆT ĐỐI KHÔNG** sửa, xoá, hay thay đổi bất kỳ file/thư mục nào của các website khác trên VPS
 - Trước khi thao tác với web server (Nginx/Apache), luôn kiểm tra cấu hình hiện tại
 - Không restart/shutdown dịch vụ dùng chung (nginx, mysql, php-fpm...) trừ khi được yêu cầu
-- Chỉ làm việc trong thư mục của website tfd2.clonod.top
+- Chỉ làm việc trong thư mục của website DOMAIN_CUA_BAN
 - Mọi thao tác với aaPanel chỉ thực hiện trên website mới, không chạm vào website khác
 
 ### 2. CHỈ THAM KHẢO WEB MẪU — KHÔNG SỬA ĐỔI
 
 - **TUYỆT ĐỐI KHÔNG** sửa, xoá, bật/tắt bất kỳ cài đặt hay chức năng nào trên web mẫu
 - **CHỈ ĐƯỢC DÙNG GET** để đọc dữ liệu tham khảo (API response format, UI, config)
-- Web mẫu là tài nguyên tham khảo — mọi thay đổi chỉ thực hiện trên web dự án `tfd2.clonod.top`
+- Web mẫu là tài nguyên tham khảo — mọi thay đổi chỉ thực hiện trên web dự án `DOMAIN_CUA_BAN`
 
 ### 3. KHÔNG XOÁ FILE
 
@@ -195,27 +195,18 @@ Inbound Node (JP/SG) → [Tunnel] → Outbound Node (VN) → Đích khách hàng
 
 ## Thông Tin Kết Nối VPS
 
-| Mục             | Giá trị                                       |
-| --------------- | --------------------------------------------- |
-| Backend path    | /opt/nyanpass-dev/                            |
-| Backend binary  | /opt/nyanpass-dev/rel_backend                 |
-| Backend service | nyanpass-dev                                  |
-| Web root        | /www/wwwroot/tfd2.clonod.top/                 |
-| Nginx config    | /etc/nginx/sites-available/tfd2.clonod.top    |
-| Backend log     | journalctl -u nyanpass-dev -f                 |
-| Node path       | /opt/nyanpass/                                |
-| Service         | nyanpass                                      |
-| GID             | 24 (tess-rukou) — DeviceGroupType_Inbound     |
-| Handle          | 604f4ee57894960d4bdad57e17c9b4d2              |
-| Token           | 2ee66e5f-bb4e-3fef-192f-a02f39b5362f          |
-| Node path       | /opt/nyanpass/                                |
-| Service         | nyanpass                                      |
-| GID             | 26 (chukou1) — DeviceGroupType_OutboundBySite |
-| Handle          | 9ed192027cdd63191948f21d7d8007c7              |
-| Token           | 70b9ad29-e1af-5b43-9e4c-431b7ee1db13          |
-| Dịch vụ         | V2bX (VMess/Trojan proxy)                     |
-| Port đích 1     | 37643 (V2bX)                                  |
-| Port đích 2     | 8442 (V2bX)                                   |
+### Đường Dẫn Mặc Định
+
+| Mục                 | Giá trị                              |
+| ------------------- | ------------------------------------ |
+| Backend path        | `/opt/senpass/`                      |
+| Backend binary      | `/opt/senpass/senpass_server`        |
+| Backend service     | `senpass`                            |
+| Web root            | `/opt/senpass/frontend/`             |
+| Nginx config        | `/etc/nginx/sites-available/senpass` |
+| Backend log         | `journalctl -u senpass -f`           |
+| Node client path    | `/opt/nyanpass/`                     |
+| Node client service | `nyanpass`                           |
 
 ---
 
@@ -342,7 +333,7 @@ location /api/v1/system/node/status_ws {
 **Lệnh cài đặt**:
 
 ```bash
-bash <(curl -fLSs https://tfd2.clonod.top/download/install.sh) rel_nodeclient -t TOKEN -u https://tfd2.clonod.top
+bash <(curl -fLSs https://DOMAIN_CUA_BAN/download/install.sh) rel_nodeclient -t TOKEN -u https://DOMAIN_CUA_BAN
 ```
 
 **Lệnh huỷ**:
