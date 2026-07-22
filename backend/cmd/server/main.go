@@ -96,6 +96,10 @@ func main() {
 	r.PUT("/api/v1/system/node/weight/:gid/:handle", node.SetWeight)
 	r.POST("/api/v1/system/node/terminal/:handle", node.CreateTerminal)
 	r.POST("/api/v1/system/node/kick/:handle", node.KickServer)
+	// Health check
+	r.GET("/api/v1/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
 	r.GET("/api/v1/system/info", func(c *gin.Context) {
 		c.JSON(200, gin.H{"code": 0, "data": gin.H{"version": "nc20260701", "license_expire": 1784545206, "time": time.Now().Unix()}, "msg": ""})
 	})

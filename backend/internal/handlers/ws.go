@@ -113,7 +113,7 @@ func getNodeStatusData() []NodeStatusResponse {
 					"cpu": n.CPU, "mem_used": n.MemUsed, "disk_used": n.DiskUsed,
 					"net_in_transfer": n.NetInTransfer, "net_out_transfer": n.NetOutTransfer,
 					"net_in_speed": n.NetInSpeed, "net_out_speed": n.NetOutSpeed,
-					"uptime": n.Uptime, "load1": n.Load1,
+					"uptime": n.Uptime, "load1": n.Load1, "load5": n.Load5, "load15": n.Load15,
 					"tcp_conn_count": n.TCPConnCount, "udp_conn_count": n.UDPConnCount,
 					"process_count": n.ProcessCount,
 				},

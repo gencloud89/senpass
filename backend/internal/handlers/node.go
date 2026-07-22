@@ -264,7 +264,7 @@ func lookupGeoIP(ip string) string {
 	if ip == "" || ip == "127.0.0.1" || strings.HasPrefix(ip, "10.") || strings.HasPrefix(ip, "192.168.") {
 		return ""
 	}
-	resp, err := http.Get("http://ip-api.com/json/" + ip + "?fields=countryCode")
+	resp, err := http.Get("https://ip-api.com/json/" + ip + "?fields=countryCode")
 	if err != nil {
 		return ""
 	}

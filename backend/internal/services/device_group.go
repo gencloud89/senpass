@@ -54,8 +54,17 @@ func (s *DeviceGroupService) Update(id uint64, updates map[string]interface{}) e
 	return database.DB.Model(&models.DeviceGroup{}).Where("id = ?", id).Updates(updates).Error
 }
 
-// Delete xóa nhiều device group theo IDs
+// Delete xóa nhiều device group theo IDs (cascade: rules + nodes)
 func (s *DeviceGroupService) Delete(ids []uint64) error {
+	for _, id := range ids {
+		// Xoá forward rules có device_group_in hoặc device_group_out = id
+		database.DB.Where("device_group_in = ?", id).Delete(&models.ForwardRule{})
+		database.DB.Where("device_group_out = ?", id).Delete(&models.ForwardRule{})
+		// Xoá node clients thuộc group
+		database.DB.Where("group_id = ?", id).Delete(&models.NodeClient{})
+		// Xoá chain outbounds
+		database.DB.Where("group_id = ?", id).Delete(&models.ChainOutbound{})
+	}
 	return database.DB.Where("id IN ?", ids).Delete(&models.DeviceGroup{}).Error
 }
 
